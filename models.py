@@ -1,11 +1,10 @@
 from app import *
 from sqlalchemy.dialects.postgresql import ARRAY
 
-# db.init_app(app)
 
 class Plan(db.Model):
-	id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-	gush 	= db.Column(db.Integer, index=True)
+	id 		= db.Column(db.Integer, primary_key=True, autoincrement=True)
+	gush_id = db.Column(db.String, index=True)
 	area 	= db.Column(db.String)
 	number 	= db.Column(db.String, index=True)
 	status 	= db.Column(db.String)
@@ -30,6 +29,13 @@ class Plan(db.Model):
 			elif isinstance(d[i], datetime.date):
 				d[i] = d[i].isoformat()
 		return d
+
+
+class Gush(db.Model):
+	id 		= db.Column(db.Integer, primary_key=True, autoincrement=True)
+	gush_id = db.Column(db.String, index=True)
+	last_checked_at= db.Column(db.Date)
+	html_hash	= db.Column(db.String)
 
 
 
