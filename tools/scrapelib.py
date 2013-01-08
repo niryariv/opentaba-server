@@ -57,7 +57,8 @@ def extract_data(html):
 			"number" : '',
 			"details_link" : '',
 			"status": '',
-			"date" 	: '',
+			# "date" 	: '',
+			"day" : None, "month" : None, "year" : None,
 			"essence" : '',
 			"takanon_link" 	: [],
 			"tasrit_link" 	: [],
@@ -75,7 +76,9 @@ def extract_data(html):
 		matchdate=re.search(r'(\d+/\d+/\d+)', rec["status"])
 		if matchdate:
 			d = matchdate.group(1)
-			rec["date"] = datetime.datetime.strptime(d, "%d/%m/%Y")
+			# rec["date"] = datetime.datetime.strptime(d, "%d/%m/%Y")
+			# switched to this instead of datetime - seems to be much faster to query with mongo
+			rec["day"], rec["month"], rec["year"] = [int(i) for i in d.split('/')]
 			rec["status"] = rec["status"].replace(d, '').strip()
 		
 		rec["essence"] = tr("td", width="235")[0].get_text(strip=True).encode('utf-8')

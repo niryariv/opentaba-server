@@ -28,8 +28,8 @@ for g in GUSHIM:
 	})
 
 db.plans.create_index([
-	('number' ,1),
-	('gush_id',1),
-	('essence',1),
-	('date'	  ,1)
+	('gush_id', pymongo.ASCENDING),
+	('year'	  , pymongo.DESCENDING),
+	('number' , pymongo.ASCENDING),
+	('essence', pymongo.ASCENDING)
 	], unique = True)
