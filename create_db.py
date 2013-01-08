@@ -33,16 +33,3 @@ db.plans.create_index([
 	('essence',1),
 	('date'	  ,1)
 	], unique = True)
-
-# Print "Done. Take care!"
-# db.init_app(app)
-# db.create_all()
-
-
-# create gushim index db
-# for g in GUSHIM:
-# 	# print "creating gush %s" % g
-# 	gush = Gush(gush_id=g, last_checked_at=None, html_hash=None)
-# 	db.session.add(gush)
-
-# db.session.commit()

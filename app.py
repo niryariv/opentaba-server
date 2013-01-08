@@ -2,6 +2,7 @@ import os
 import datetime
 import json
 import pymongo
+from urlparse import urlparse
 
 from flask import Flask
 from flask import Response
@@ -13,6 +14,8 @@ import scraper
 
 # from flask.ext.sqlalchemy import SQLAlchemy
 # from flask.ext.pymongo import PyMongo
+
+# print urlparse("http://yahoo.com/asdas") ; exit()
 
 app = Flask(__name__)
 
