@@ -2,6 +2,7 @@ import os
 import datetime
 import json
 import pymongo
+from bson import json_util
 from urlparse import urlparse
 
 from flask import Flask
@@ -38,11 +39,6 @@ else:			# work locally
 
 q = Queue(connection=conn)
 
-# Test stuff
-# db.test_collection.insert({"testdoc":"totaltest"})
-# print db.test_collection.find()[0]
-
-
 # def json_results(result_set):
 # 	return json.dumps([i.to_dict() for i in result_set])
 
@@ -64,6 +60,27 @@ def scrape_all():
 		q.enqueue(scraper.scrape_gush, g)
 	return "ok all "
 
+
+# convert a mongo result to JSON
+def _to_json(mongo_obj):
+	return json.dumps(mongo_obj, ensure_ascii=False, default=json_util.default)
+
+
+@app.route('/gush/<gush_id>')
+def get_gush(gush_id):
+	gush = db.gushim.find_one({"gush_id" : gush_id})
+	if gush is None:
+		abort(404)
+
+	return _to_json(gush)
+
+@app.route('/gush/<gush_id>/plans')
+def get_plans(gush_id):
+	plans = db.plans.find({"gush_id" : gush_id})
+	if plans is None:
+		abort(404)
+
+	return _to_json(list(plans))
 
 @app.route('/')
 def hello():
