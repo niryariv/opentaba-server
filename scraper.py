@@ -13,9 +13,10 @@ def scrape_gush(gush):
 	html = get_gush_html(gush_id)
 
 	# save in cache
-	f = open("filecache/%s.html" % gush_id, "wb")
-	f.write(html.encode('utf-8'))
-	f.close()
+	if RUNNING_LOCAL:
+		f = open("filecache/%s.html" % gush_id, "wb")
+		f.write(html.encode('utf-8'))
+		f.close()
 
 	
 	html_hash = md5.new(html.encode('utf-8')).hexdigest()

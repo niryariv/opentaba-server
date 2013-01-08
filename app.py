@@ -28,9 +28,11 @@ MONGO_URL = os.environ.get('MONGOHQ_URL')
 if MONGO_URL:	# on Heroku, get a connection
     m_conn = pymongo.Connection(MONGO_URL)   
     db = m_conn[urlparse(MONGO_URL).path[1:]]
+    RUNNING_LOCAL = False
 else:			# work locally
     m_conn = pymongo.Connection('localhost', 27017)
     db = m_conn['citymap']
+    RUNNING_LOCAL = True
     app.debug = True # since we're local, keep debug on
 
 
