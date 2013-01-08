@@ -52,21 +52,16 @@ def scrape(gush_id):
 
 @app.route('/_scrape/all')
 def scrape_all():
-	gushim = db.gushim.find() #[:30]
+	# gushim = db.gushim.find() #[:30]
+	gushim = db.gushim.find({ "gush_id": { "$regex" : "300.*"} }) # sample
+
 	for g in gushim:
 		q.enqueue(scraper.scrape_gush, g)
 	return "ok all "
 
-@app.route('/')
-def all():
-	# r = Plan.query.all()
-	# return jsonify([i.to_dict() for i in result_set])
-	# js = json_results(r)
-	# resp = Response(js, status=200, mimetype='application/json')
-	# resp.headers['Access-Control-Allow-Origin'] = '*'
 
-	# return resp
-	# return out
+@app.route('/')
+def hello():
 	return "Hello"
 
 
