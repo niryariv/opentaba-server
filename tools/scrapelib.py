@@ -47,27 +47,25 @@ def _extract_popoutmmg(js):
 def extract_data(html):
 	data = []
 
-	COLUMNS = {	
-		"area" 	: '',
-		"number" : '',
-		"details_link" : '',
-		"status": '',
-		"date" 	: '',
-		"essence" : '',
-		"takanon_link" 	: [],
-		"tasrit_link" 	: [],
-		"nispahim_link" : [],
-		"files_link" 	: [],
-		"govmap_link" 	: []
-	}
-
 	s = BeautifulSoup(html, "lxml", from_encoding = SITE_ENCODING)
 
 	table = s("table", "highLines")[0]
-
 	for tr in table("tr", valign="top"):
-		rec = COLUMNS.copy()
-		# rec["gush"]		= gush
+
+		rec = {	
+			"area" 	: '',
+			"number" : '',
+			"details_link" : '',
+			"status": '',
+			"date" 	: '',
+			"essence" : '',
+			"takanon_link" 	: [],
+			"tasrit_link" 	: [],
+			"nispahim_link" : [],
+			"files_link" 	: [],
+			"govmap_link" 	: []
+		}		
+
 		rec["area"] 	= tr("td", width="80")[0].get_text(strip=True).encode('utf-8')
 		rec["number"]	= tr("td", width="120")[0].get_text(strip=True).encode('utf-8')
 		rec["details_link"] 	= tr("td", width="120")[0].a.get("href")
