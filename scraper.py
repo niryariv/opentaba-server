@@ -9,7 +9,7 @@ def scrape_gush(gush):
 	gush_id = gush['gush_id']
 
 	print "checking gush %s" % gush_id
-
+	
 	if RUNNING_LOCAL:
 		local_cache = "filecache/%s.html" % gush_id
 		if os.path.exists(local_cache):
@@ -28,7 +28,6 @@ def scrape_gush(gush):
 
 	# check if the html matches a pre-read html
 	# html_hash = md5.new(html.encode('utf-8')).hexdigest()
-	# print "html_hash: %s" % html_hash
 	if gush["html_hash"] == html_hash:
 		print "duplicate HTML - returning"
 		return True

@@ -30,6 +30,8 @@ for g in GUSHIM:
 db.plans.create_index([
 	('gush_id', pymongo.ASCENDING),
 	('year'	  , pymongo.DESCENDING),
+	('month'  , pymongo.DESCENDING),
+	('day'	  , pymongo.DESCENDING),
 	('number' , pymongo.ASCENDING),
 	('essence', pymongo.ASCENDING)
-	], unique = True)
+	], unique = True) #, drop_dups = True)

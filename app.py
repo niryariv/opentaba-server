@@ -53,9 +53,9 @@ def scrape(gush_id):
 
 @app.route('/_scrape/all')
 def scrape_all():
-	# gushim = db.gushim.find() #[:30]
-	gushim = db.gushim.find({ "gush_id": { "$regex" : "300.*"} }) # sample
-
+	# gushim = db.gushim.find({ "gush_id": { "$regex" : "300.*"} }) # sample
+	gushim = db.gushim.find() #[:30]
+	
 	for g in gushim:
 		q.enqueue(scraper.scrape_gush, g)
 	return "ok all "
