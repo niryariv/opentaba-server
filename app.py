@@ -6,8 +6,8 @@ from bson import json_util
 from urlparse import urlparse
 
 from flask import Flask
-from flask import Response
-from flask import abort, redirect, url_for
+# from flask import Response
+from flask import abort, redirect, url_for, make_response
 
 from rq import Queue
 from worker import conn
@@ -66,13 +66,20 @@ def _to_json(mongo_obj):
 	return json.dumps(mongo_obj, ensure_ascii=False, default=json_util.default)
 
 
+def resp(data):
+	r = make_response(_to_json(data))
+	r.headers['Content-Type'] = "application/json"
+	r.headers['Access-Control-Allow-Origin'] = "*"
+	return r
+
+
 @app.route('/gush/<gush_id>')
 def get_gush(gush_id):
 	gush = db.gushim.find_one({"gush_id" : gush_id})
 	if gush is None:
 		abort(404)
+	return resp(gush)
 
-	return _to_json(gush)
 
 @app.route('/gush/<gush_id>/plans')
 def get_plans(gush_id):
@@ -80,7 +87,8 @@ def get_plans(gush_id):
 	if plans is None:
 		abort(404)
 
-	return _to_json(list(plans))
+	return resp(list(plans))
+
 
 @app.route('/')
 def hello():
