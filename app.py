@@ -94,6 +94,13 @@ def get_plans(gush_id):
 def hello():
 	return "Hello"
 
+# on single-dyno apps, Heroku sends the dyno to idle after a certain time.
+# this resutls in very slow response for the first client call
+# This route exists only as an endpoint for a "wakeup" request when the client inits
+@app.route('/wakeup')
+def wakeup():
+	return "Morning!"
+
 
 if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000.
