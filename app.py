@@ -99,7 +99,7 @@ def hello():
 # This route exists only as an endpoint for a "wakeup" request when the client inits
 @app.route('/wakeup')
 def wakeup():
-	return "Morning!"
+	return resp({'morning' : 'good'})
 
 
 if __name__ == '__main__':
