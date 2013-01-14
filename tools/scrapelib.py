@@ -124,6 +124,9 @@ def scrape_gush(gush):
 	else:
 		html = get_gush_html(gush_id)
 	
+	
+	if isinstance(html, unicode):
+		html = html.encode('utf-8')
 	html_hash = md5.new(html).hexdigest()
 
 	# check if the html matches a pre-read html
