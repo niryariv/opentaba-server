@@ -69,7 +69,7 @@ def hello():
 # used as endpoint for a "wakeup" request when the client inits
 @app.route('/wakeup')
 def wakeup():
-	return resp({'morning' : 'good'})
+	return _resp({'morning' : 'good'})
 
 
 #### MAIN ####
