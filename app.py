@@ -6,23 +6,10 @@ from bson import json_util
 from urlparse import urlparse
 
 from flask import Flask
-# from flask import Response
 from flask import abort, redirect, url_for, make_response
 
-from rq import Queue
-from worker import conn
-import scraper
-
-# from flask.ext.sqlalchemy import SQLAlchemy
-# from flask.ext.pymongo import PyMongo
-
-# print urlparse("http://yahoo.com/asdas") ; exit()
 
 app = Flask(__name__)
-
-# app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'postgresql://localhost/citymap')
-# db = SQLAlchemy(app)
-# from models import *
 
 MONGO_URL = os.environ.get('MONGOHQ_URL')
 
@@ -37,70 +24,55 @@ else:			# work locally
     app.debug = True # since we're local, keep debug on
 
 
-q = Queue(connection=conn)
+#### Helpers ####
 
-# def json_results(result_set):
-# 	return json.dumps([i.to_dict() for i in result_set])
-
-@app.route('/_scrape/<gush_id>')
-def scrape(gush_id):
-	gush = db.gushim.find_one({"gush_id" : gush_id})
-	if gush is None:
-		abort(404)
-
-	q.enqueue(scraper.scrape_gush, gush)
-	return "ok"
-
-@app.route('/_scrape/all')
-def scrape_all():
-	# gushim = db.gushim.find({ "gush_id": { "$regex" : "300.*"} }) # sample
-	gushim = db.gushim.find() #[:30]
-	
-	for g in gushim:
-		q.enqueue(scraper.scrape_gush, g)
-	return "ok all "
-
-
-# convert a mongo result to JSON
+# convert dictionary to JSON. json_util.default adds automatic mongoDB result support
 def _to_json(mongo_obj):
 	return json.dumps(mongo_obj, ensure_ascii=False, default=json_util.default)
 
 
-def resp(data):
+def _resp(data):
 	r = make_response(_to_json(data))
 	r.headers['Content-Type'] = "application/json"
 	r.headers['Access-Control-Allow-Origin'] = "*"
 	return r
 
 
+#### ROUTES ####
+
+# get gush_id metadata
 @app.route('/gush/<gush_id>')
 def get_gush(gush_id):
 	gush = db.gushim.find_one({"gush_id" : gush_id})
 	if gush is None:
 		abort(404)
-	return resp(gush)
+	return _resp(gush)
 
 
+# get plans from gush_id
 @app.route('/gush/<gush_id>/plans')
 def get_plans(gush_id):
 	plans = db.plans.find({"gush_id" : gush_id})
 	if plans is None:
 		abort(404)
 
-	return resp(list(plans))
+	return _resp(list(plans))
 
 
+# TODO add some text on the project
 @app.route('/')
 def hello():
 	return "Hello"
 
-# on single-dyno apps, Heroku sends the dyno to idle after a certain time.
-# this resutls in very slow response for the first client call
-# This route exists only as an endpoint for a "wakeup" request when the client inits
+
+# wake up heroku dyno from idle. perhaps can if >1 dynos 
+# used as endpoint for a "wakeup" request when the client inits
 @app.route('/wakeup')
 def wakeup():
 	return resp({'morning' : 'good'})
 
+
+#### MAIN ####
 
 if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000.
