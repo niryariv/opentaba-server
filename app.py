@@ -55,7 +55,7 @@ def get_plans(gush_id):
 	if db.gushim.find_one({"gush_id" : gush_id}) is None:
 		abort(404)
 
-	plans = db.plans.find({"gush_id" : gush_id})
+	plans = db.plans.find({"gush_id" : gush_id}).sort([("year", pymongo.DESCENDING), ("month", pymongo.DESCENDING), ("day", pymongo.DESCENDING)])
 	return _resp(list(plans))
 
 
