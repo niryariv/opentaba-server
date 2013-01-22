@@ -33,8 +33,8 @@ def _to_json(mongo_obj):
 
 def _resp(data):
 	r = make_response(_to_json(data))
-	r.headers['Content-Type'] = "application/json"
 	r.headers['Access-Control-Allow-Origin'] = "*"
+	r.headers['Content-Type'] = "application/json"
 	return r
 
 
