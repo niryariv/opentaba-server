@@ -62,7 +62,9 @@ def get_plans(gush_id):
 # TODO add some text on the project
 @app.route('/')
 def hello():
-	return "Hello"
+	out = '<html><body>Hi. You\'ve reached the server side of <a href="http://opentaba.info">opentaba.info</a>. Source code and more info <a href="https://github.com/niryariv/citymap-server">here</a></body></html>'
+
+	return out
 
 
 # wake up heroku dyno from idle. perhaps can if >1 dynos 
