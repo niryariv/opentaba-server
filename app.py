@@ -62,7 +62,7 @@ def get_plans(gush_id):
 # TODO add some text on the project
 @app.route('/')
 def hello():
-	out = '<html><body>Hi. You\'ve reached the server side of <a href="http://opentaba.info">opentaba.info</a>. Source code and more info <a href="https://github.com/niryariv/citymap-server">here</a></body></html>'
+	out = '<html><body style="font-size: 3em; margin: 100px; text-align:center"><p>Hi. You\'ve reached the server side of <a href="http://opentaba.info">opentaba.info</a></p><p><a href="https://github.com/niryariv/citymap-server">Source</a></p></body></html>'
 
 	return out
 
