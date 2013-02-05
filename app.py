@@ -1,12 +1,14 @@
 import os
 import datetime
 import json
-import pymongo
+import pymongo	
 from bson import json_util
 from urlparse import urlparse
 
+from werkzeug.contrib.atom import AtomFeed
+
 from flask import Flask
-from flask import abort, redirect, url_for, make_response
+from flask import abort, redirect, url_for, make_response, request
 
 
 app = Flask(__name__)
@@ -63,6 +65,30 @@ def get_plans(gush_id):
 	plans_clean = [p for p in list(plans) if p['number'] not in blacklist]
 
 	return _resp(plans_clean)
+
+
+@app.route('/feed')
+def atom_feed():
+	feed = AtomFeed("OpenTABA", feed_url=request.url, url=request.url_root)
+
+	plans = db.plans.find(limit=1000).sort([("year", pymongo.DESCENDING), ("month", pymongo.DESCENDING), ("day", pymongo.DESCENDING)])
+
+	blacklist = db.blacklist.find_one()['blacklist']
+	plans_clean = [p for p in list(plans) if p['number'] not in blacklist]
+
+	for p in plans_clean:
+		feed.add(
+			title=p['essence'],
+			content=p['status'] + p['number'],
+			content_type='html',
+			author="OpenTABA.info",
+			id=p['status'] + p['number'],
+			url='http://opentaba.info/#/gush/' + p['gush_id'] + '/plans',
+			updated=datetime.date(p['year'], p['month'], p['day'])
+		)
+
+	return feed.get_response()
+
 
 
 # TODO add some text on the project
