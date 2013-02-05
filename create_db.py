@@ -35,3 +35,5 @@ db.plans.create_index([
 	('number' , pymongo.ASCENDING),
 	('essence', pymongo.ASCENDING)
 	], unique = True) #, drop_dups = True)
+
+db.blacklist.insert({'blacklist' : []})

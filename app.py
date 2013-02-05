@@ -55,8 +55,14 @@ def get_plans(gush_id):
 	if db.gushim.find_one({"gush_id" : gush_id}) is None:
 		abort(404)
 
-	plans = db.plans.find({"gush_id" : gush_id, "total_gushim" : None}).sort([("year", pymongo.DESCENDING), ("month", pymongo.DESCENDING), ("day", pymongo.DESCENDING)])
-	return _resp(list(plans))
+	plans = db.plans.find({"gush_id" : gush_id}).sort([("year", pymongo.DESCENDING), ("month", pymongo.DESCENDING), ("day", pymongo.DESCENDING)])
+	
+	# eliminate plans which appear in >99 blocks - cover for MMI's database bugs
+	blacklist = db.blacklist.find_one()['blacklist']
+
+	plans_clean = [p for p in list(plans) if p['number'] not in blacklist]
+
+	return _resp(plans_clean)
 
 
 # TODO add some text on the project
