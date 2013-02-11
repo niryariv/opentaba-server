@@ -96,7 +96,7 @@ def atom_feed():
 def hello():
 	out = '''<html><body style="font-size: 3em; margin: 100px; text-align:center">
 	<p>Hi. You\'ve reached the server side of <a href="http://opentaba.info">opentaba.info</a></p>
-	<p><a href="https://github.com/niryariv/citymap-server">Source</a></p>
+	<p><a href="https://github.com/niryariv/opentaba-server">Source</a></p>
 </body></html>'''
 
 	return out
