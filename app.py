@@ -43,6 +43,13 @@ def _resp(data):
 #### ROUTES ####
 
 # get gush_id metadata
+@app.route('/gushim')
+def get_gushim():
+	gushim = db.gushim.find(fields={'gush_id': True, '_id' : False})
+	return _resp(list(gushim))
+
+
+# get gush_id metadata
 @app.route('/gush/<gush_id>')
 def get_gush(gush_id):
 	gush = db.gushim.find_one({"gush_id" : gush_id})
