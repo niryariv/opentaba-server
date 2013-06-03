@@ -5,24 +5,52 @@
 
 from app import * # for DB stuff
 
-js = '''
-	BLACKLIST_THRESHOLD = 99;
 
-	t = db.plans.group({
-		key: {'number' : true}, 
-		initial: {gushim : []}, 
-		reduce: function(doc, prev) { prev.gushim.push(doc.gush_id)},
-		finalize: function(doc) { doc.total = doc.gushim.length }
-	});
+# so, we used to do it all-mongo JS and then eval() that.
+# But MongoHQ doesn't allow eval() on sandbox accts anymore, so re-implemented in Python and commenting the part below
 
-	var blacklist = new Array();
-	t.forEach(
-		function(d) { if (d.total > BLACKLIST_THRESHOLD) blacklist.push(d.number); }
-	);
+# js = '''
+# 	BLACKLIST_THRESHOLD = 99;
+#
+# 	t = db.plans.group({
+# 		key: {'number' : true}, 
+# 		initial: {gushim : []}, 
+# 		reduce: function(doc, prev) { prev.gushim.push(doc.gush_id)},
+# 		finalize: function(doc) { doc.total = doc.gushim.length }
+# 	});
+#
+# 	var blacklist = new Array();
+# 	t.forEach(
+# 		function(d) { if (d.total > BLACKLIST_THRESHOLD) blacklist.push(d.number); }
+# 	);
+#
+# 	db.blacklist.remove();
+# 	db.blacklist.insert({blacklist : blacklist});
+#
+# '''
+# print db.eval(js)
 
-	db.blacklist.remove();
-	db.blacklist.insert({blacklist : blacklist});
+# Python version of the above
 
-'''
+from bson.code import Code
+from bson.son import SON
 
-print db.eval(js)
+blacklist = []
+BLACKLIST_THRESHOLD = 99
+
+reducer		= Code(" function(doc, prev){ prev.gushim.push(doc.gush_id)	}")
+finalizer	= Code(" function(doc){	doc.total = doc.gushim.length }")
+
+results = db.plans.group(key={"number": True}, initial={"gushim": []}, reduce=reducer, finalize=finalizer, condition={})
+
+for r in results:
+	if r['total'] > BLACKLIST_THRESHOLD:
+		blacklist.append(r['number'])
+
+db.blacklist.remove()
+db.blacklist.insert({'blacklist': blacklist})
+
+
+
+
+
