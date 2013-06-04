@@ -6,6 +6,7 @@ from bson import json_util
 from urlparse import urlparse
 
 from werkzeug.contrib.atom import AtomFeed
+from werkzeug.urls import url_encode
 
 from flask import Flask
 from flask import abort, redirect, url_for, make_response, request
@@ -89,7 +90,7 @@ def atom_feed():
 			content=p['status'] + p['number'],
 			content_type='html',
 			author="OpenTABA.info",
-			id=p['status'] + p['number'],
+			id='http://mmi.gov.il/IturTabot/taba4.asp?' + url_encode({'kod' : 3000, 'MsTochnit' : p['number']}),
 			url='http://opentaba.info/#/gush/' + p['gush_id'],
 			updated=datetime.date(p['year'], p['month'], p['day'])
 		)
