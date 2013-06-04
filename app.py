@@ -90,7 +90,7 @@ def atom_feed():
 			content_type='html',
 			author="OpenTABA.info",
 			id=p['status'] + p['number'],
-			url='http://opentaba.info/#/gush/' + p['gush_id'] + '/plans',
+			url='http://opentaba.info/#/gush/' + p['gush_id'],
 			updated=datetime.date(p['year'], p['month'], p['day'])
 		)
 
