@@ -20,12 +20,42 @@ db.plans.drop()
 
 db.gushim.create_index([('gush_id', 1)], unique=True)
 
+bad_gushim = [30160, 30343, 30361, 0]
+
 for g in GUSHIM:
-	db.gushim.insert({
-		'gush_id'	: g,
-		'html_hash' : '',
-		'last_checked_at': ''
-	})
+	if g["properties"]["Name"]:
+		try:
+			gush_id = int(g["properties"]["Name"])
+		except ValueError:
+			continue
+
+		# some gushim are bad, so skip them
+		if gush_id in bad_gushim:
+			continue
+
+		for ring in range(len(g["geometry"]["coordinates"])):
+			newcoords = []
+			for coord in g["geometry"]["coordinates"][ring]:
+				#print coord[0], coord[1]
+				newcoords.append([coord[0], coord[1]])
+
+			#if newcoords[-1][0] == newcoords[0][0] and newcoords[-1][1] == newcoords[0][1]:
+			#	newcoords = newcoords[:-1]
+			
+			g["geometry"]["coordinates"][ring] = newcoords
+
+		print "inserting gush number ", gush_id, "number of coords", len(g["geometry"]["coordinates"][0])
+		db.gushim.insert({
+			'gush_id'	: gush_id,
+			'html_hash' : '',
+			'last_checked_at': '',
+			'gush_geo': g["geometry"]
+		})
+
+print "Inserted %d gushim" % (len(GUSHIM))
+
+#db.gushim.create_index([("gush_geo", pymongo.GEOSPHERE)])
+		
 
 db.plans.create_index([
 	('gush_id', pymongo.ASCENDING),

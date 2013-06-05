@@ -4,6 +4,8 @@ import json
 import pymongo	
 from bson import json_util
 from urlparse import urlparse
+import urllib2
+import urllib
 
 from werkzeug.contrib.atom import AtomFeed
 from werkzeug.urls import url_encode
@@ -97,6 +99,25 @@ def atom_feed():
 
 	return feed.get_response()
 
+@app.route('/gush/by-addr/<addr>')
+def gushbyaddr(addr):
+	url = "http://nominatim.openstreetmap.org/search?" +  urllib.urlencode({"q" : addr.encode('utf8'), "format": "json"})
+	wwwfile = urllib2.urlopen(url)
+	o = json.load(wwwfile)
+	wwwfile.close()
+	if not o:
+		return "ERROR"
+
+	coords = []
+	lon = float(o[0]['lon'])
+	lat = float(o[0]['lat'])
+
+	gush = db.gushim.find_one( { "gush_geo": { "$geoIntersects": {"$geometry": {"type":"Point", "coordinates": [lon, lat]}} } }  )
+
+	if gush:
+		return str(gush['gush_id'])
+	else:
+		return 'NOT FOUND'
 
 
 # TODO add some text on the project
