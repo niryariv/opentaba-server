@@ -79,19 +79,21 @@ def get_plans(gush_id):
 def atom_feed():
 	feed = AtomFeed("OpenTABA", feed_url=request.url, url=request.url_root)
 
-	plans = db.plans.find(limit=1000).sort([("year", pymongo.DESCENDING), ("month", pymongo.DESCENDING), ("day", pymongo.DESCENDING)])
+	plans = db.plans.find(limit=2000).sort([("year", pymongo.DESCENDING), ("month", pymongo.DESCENDING), ("day", pymongo.DESCENDING)])
 
 	blacklist = db.blacklist.find_one()['blacklist']
 	plans_clean = [p for p in list(plans) if p['number'] not in blacklist]
 
 	for p in plans_clean:
+		url = 'http://mmi.gov.il/IturTabot/taba4.asp?' + url_encode({'kod' : 3000, 'MsTochnit' : p['number']}, charset='windows-1255')
+
 		feed.add(
-			title=p['essence'],
-			content=p['status'] + p['number'],
-			content_type='html',
-			author="OpenTABA.info",
-			id='http://mmi.gov.il/IturTabot/taba4.asp?' + url_encode({'kod' : 3000, 'MsTochnit' : p['number']}),
-			url='http://opentaba.info/#/gush/' + p['gush_id'],
+			title 	= p['essence'],
+			content	=p['status'] + p['number'],
+			content_type = 'html',
+			author = "OpenTABA.info",
+			id	= url + '&status=' + p['status'], # this is a unique ID (not real URL) so adding status to ensure uniqueness in TBA stages
+			url = url, 
 			updated=datetime.date(p['year'], p['month'], p['day'])
 		)
 
