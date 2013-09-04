@@ -7,7 +7,7 @@ import md5
 
 from app import *
 
-
+date_pattern = re.compile(r'(\d+/\d+/\d+)')
 SITE_ENCODING = 'windows-1255'
 
 def url_for_gush(gush_id):
@@ -64,14 +64,14 @@ def extract_data(html):
 			"govmap_link" 	: []
 		}		
 
-		rec["area"] 	= tr("td", width="80")[0].get_text(strip=True).encode('utf-8')
-		rec["number"]	= tr("td", width="120")[0].get_text(strip=True).encode('utf-8')
-		rec["details_link"] 	= tr("td", width="120")[0].a.get("href")
+		rec["area"] = tr("td", width="80")[0].get_text(strip=True).encode('utf-8')
+		rec["number"] = tr("td", width="120")[0].get_text(strip=True).encode('utf-8')
+		rec["details_link"] = tr("td", width="120")[0].a.get("href")
 		
-		rec["status"] 	= tr("td", width="210")[0].get_text(strip=True).encode('utf-8')
+		rec["status"] = tr("td", width="210")[0].get_text(strip=True).encode('utf-8')
 		
-		matchdate=re.search(r'(\d+/\d+/\d+)', rec["status"])
-		if matchdate:
+		matchdate = re.search(date_pattern, rec["status"])
+		if matchdate:matchdate
 			d = matchdate.group(1)
 			# rec["date"] = datetime.datetime.strptime(d, "%d/%m/%Y")
 			# switched to this instead of datetime - seems to be much faster to query with mongo
