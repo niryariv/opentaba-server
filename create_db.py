@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 from app import *
 from tools.gushim import GUSHIM
 # from models import *
