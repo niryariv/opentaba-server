@@ -17,14 +17,14 @@ def url_for_gush(gush_id):
 def get_gush_html(gush_id):
 
 	download_url = url_for_gush(gush_id)
-	print download_url
+	print (download_url)
 
 	try:
 		r = requests.get(download_url)
 		if r.status_code != 200:
 			raise Exception("Status code: %s" % r.status_code)
 	except Exception, e:
-		print "ERROR: %s" % e
+		print ("ERROR: %s" % e)
 		exit()
 
 	r.encoding = SITE_ENCODING
@@ -110,12 +110,12 @@ def scrape_gush(gush):
 
 	gush_id = gush['gush_id']
 
-	print "checking gush %s" % gush_id
+	print ("checking gush %s" % gush_id)
 	
 	if RUNNING_LOCAL:
 		local_cache = "filecache/%s.html" % gush_id
 		if os.path.exists(local_cache):
-			print "reading local file %s" % local_cache
+			print ("reading local file %s" % local_cache)
 			html = open(local_cache, 'r').read()
 		else:
 			html = get_gush_html(gush_id)
@@ -132,18 +132,18 @@ def scrape_gush(gush):
 	# check if the html matches a pre-read html
 	# html_hash = md5.new(html.encode('utf-8')).hexdigest()
 	if gush["html_hash"] == html_hash:
-		print "duplicate HTML - returning"
+		print ("duplicate HTML - returning")
 		return True
 
-	print "HTML new, inserting data"
+	print ("HTML new, inserting data")
 	data = extract_data(html)
 	for i in data:	
 		i['gush_id']=gush_id
 		
-		print "Inserting item: %s" % i
+		print ("Inserting item: %s" % i)
 		db.plans.insert(i)
 		
-	print "updating gush html_hash, last_checked_at"
+	print ("updating gush html_hash, last_checked_at")
 	gush["html_hash"] = html_hash
 	gush["last_checked_at"] = datetime.datetime.now()
 	db.gushim.save(gush)
