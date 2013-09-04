@@ -10,5 +10,8 @@ matrix:
 install:
   - pip install -r requirements.txt --use-mirrors
 
+before_script:
+    python create_db.py --force
+
 script:
     - nosetests 
