@@ -14,7 +14,7 @@ install:
 
 before_script:
   - python create_db.py --force
-  - python scrape.py 30035
+  - python scrape.py -g 30035
   - python worker.py
   - python clean_db.py
     
