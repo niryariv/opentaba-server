@@ -1,5 +1,7 @@
 language: python
-
+services: 
+  - mongodb
+  - redis-server
 python:
   - "2.6"
   - "2.7"
@@ -11,7 +13,10 @@ install:
   - pip install -r requirements.txt --use-mirrors
 
 before_script:
-    python create_db.py --force
-
+  - python create_db.py --force
+  - python scrape.py 30035
+  - python worker.py
+  - python clean_db.py
+    
 script:
     - nosetests 
