@@ -71,7 +71,7 @@ def extract_data(html):
 		rec["status"] = tr("td", width="210")[0].get_text(strip=True).encode('utf-8')
 		
 		matchdate = re.search(date_pattern, rec["status"])
-		if matchdate:matchdate
+		if matchdate:
 			d = matchdate.group(1)
 			# rec["date"] = datetime.datetime.strptime(d, "%d/%m/%Y")
 			# switched to this instead of datetime - seems to be much faster to query with mongo
