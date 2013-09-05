@@ -9,6 +9,7 @@ The code is Flask based, working with MongoDB as database, written to run on Her
     pip install -r requirements.txt
     python app.py
 
+Notice that if you are running this on a local dev machine you need to have mongodb running and listening in port 27017
 #### Create initial DB
 
     python create_db --force

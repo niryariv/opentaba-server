@@ -1,7 +1,9 @@
+#!/usr/bin/python
+
 import os
 import datetime
 import json
-import pymongo	
+import pymongo
 from bson import json_util
 from urlparse import urlparse
 
@@ -21,6 +23,7 @@ if MONGO_URL:	# on Heroku, get a connection
     db = m_conn[urlparse(MONGO_URL).path[1:]]
     RUNNING_LOCAL = False
 else:			# work locally
+    #maybe start mongo db programmeticaly
     m_conn = pymongo.Connection('localhost', 27017)
     db = m_conn['citymap']
     RUNNING_LOCAL = True
