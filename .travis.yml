@@ -6,11 +6,21 @@ python:
   - "2.6"
   - "2.7"
 env:
-
+  - FLASK=0.9
+  - FLASK=0.10.1
 matrix:
+  
+  #forward thinking for python 3
+  include:
+  - python: "3.3"
+  env: FLASK=0.10.1
+  
+  allow failures:
+  - python: "3.3"
 
 install:
-  - pip install -r requirements.txt --use-mirrors
+  - pip install -r test_requirements.txt --use-mirrors
+  - pip install -r Flask==$FLASK
 
 before_script:
   - python create_db.py --force
