@@ -7,13 +7,13 @@ beautifulsoup4==4.1.3
 #distribute==0.6.27 #breaks something, don't think it's needed
 gunicorn==0.16.1
 lxml==3.2.3 #on windows comment this line, download a precompiled binary and easy_install from local path
-psycopg2==2.5.1 #same as above
+#psycopg2==2.5.1 #same as above
 pymongo==2.4.1
 python-dateutil==2.1
 pytz==2012j
 redis==2.7.2
 requests==1.0.4
 rq==0.3.2
-six==1.2.0
+#six==1.2.0
 times==0.6
 wsgiref==0.1.2
