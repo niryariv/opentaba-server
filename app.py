@@ -1,7 +1,10 @@
+#!/usr/bin/python
+
 import os
 import datetime
 import json
-import pymongo	
+import pymongo
+from pymongo.errors import ConnectionFailure
 from bson import json_util
 from urlparse import urlparse
 
@@ -10,7 +13,6 @@ from werkzeug.urls import url_encode
 
 from flask import Flask
 from flask import abort, redirect, url_for, make_response, request
-
 
 app = Flask(__name__)
 
@@ -21,7 +23,11 @@ if MONGO_URL:	# on Heroku, get a connection
     db = m_conn[urlparse(MONGO_URL).path[1:]]
     RUNNING_LOCAL = False
 else:			# work locally
-    m_conn = pymongo.Connection('localhost', 27017)
+    try:
+        m_conn = pymongo.Connection('localhost', 27017)
+    except ConnectionFailure:
+        print('You should have mongodb running')
+
     db = m_conn['citymap']
     RUNNING_LOCAL = True
     app.debug = True # since we're local, keep debug on

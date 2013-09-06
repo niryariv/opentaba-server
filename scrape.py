@@ -12,22 +12,23 @@ parser.add_option("-g", dest="gush", help="ID of gush to scrape (-g all to scrap
 (options, args) = parser.parse_args()
 
 if not options.gush:
-	print "must include -g <gush ID>"
+	print ("must include -g <gush ID>")
 	exit()
 
 gush_id = options.gush
 
 q = Queue(connection=conn)
 
-
+print(gush_id)
 # find gush/im
 if gush_id=="all":
-	gushim = db.gushim.find()
+
+    gushim = db.gushim.find()
 else:
-	gushim = [db.gushim.find_one({"gush_id" : gush_id})]
+    gushim = [db.gushim.find_one({"gush_id" : gush_id})]
 
-
+print(gushim)
 # enqueue them
 for g in gushim:
-	print "Queue gush %s" % g['gush_id']
+	print ("Queue gush %s" % g['gush_id'])
 	q.enqueue(scrape_gush, g)

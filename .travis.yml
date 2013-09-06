@@ -1,0 +1,27 @@
+language: python
+services: 
+  - mongodb
+  - redis-server
+python:
+  - "2.6"
+  - "2.7"
+env:
+  - FLASK=0.9
+  - FLASK=0.10.1
+matrix:
+
+install:
+  - pip install -r test_requirements.txt --use-mirrors
+  - pip install Flask==$FLASK
+
+before_script:
+  - python create_db.py --force
+  - mkdir filecache
+  - chmod -R 0777 filecache 
+  - python scrape.py -g 30035
+  - python worker.py
+  - python clean_db.py
+
+    
+script:
+    - nosetests 
