@@ -12,5 +12,5 @@ pytz==2012j
 redis==2.7.2
 requests==1.0.4
 rq==0.3.2
-times==0.6
-wsgiref==0.1.2
+#times==0.6
+#wsgiref==0.1.2
