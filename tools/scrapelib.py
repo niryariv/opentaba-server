@@ -3,7 +3,8 @@ from bs4 import BeautifulSoup
 import requests
 import datetime
 import re
-import md5
+#import md5
+from hashlib import md5
 
 from app import *
 
