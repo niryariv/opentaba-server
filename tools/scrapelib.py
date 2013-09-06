@@ -128,7 +128,7 @@ def scrape_gush(gush):
 	
 	if isinstance(html, unicode):
 		html = html.encode('utf-8')
-	html_hash = md5.new(html).hexdigest()
+	html_hash = md5(html).hexdigest()
 
 	# check if the html matches a pre-read html
 	# html_hash = md5.new(html.encode('utf-8')).hexdigest()
