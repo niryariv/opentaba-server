@@ -20,7 +20,7 @@ matrix:
 
 install:
   - pip install -r test_requirements.txt --use-mirrors
-  - pip install -r Flask==$FLASK
+  - pip install Flask==$FLASK
 
 before_script:
   - python create_db.py --force
