@@ -13,7 +13,7 @@ parser.add_option("--force", dest="force", default=False, action="store_true", h
 (options, args) = parser.parse_args()
 
 if not options.force:
-	print "This script will delete the gushim and plans collection. To make sure this isn't running by mistake, run this with --force"
+	print ("This script will delete the gushim and plans collection. To make sure this isn't running by mistake, run this with --force")
 	exit()
 
 # print "Deleting db.gushim and db.plans"

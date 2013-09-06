@@ -12,7 +12,7 @@ parser.add_option("-g", dest="gush", help="ID of gush to scrape (-g all to scrap
 (options, args) = parser.parse_args()
 
 if not options.gush:
-	print "must include -g <gush ID>"
+	print ("must include -g <gush ID>")
 	exit()
 
 gush_id = options.gush
