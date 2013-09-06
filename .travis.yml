@@ -13,7 +13,7 @@ matrix:
   #forward thinking for python 3
   include:
   - python: "3.3"
-  env: FLASK=0.10.1
+    env: FLASK=0.10.1
   
   allow failures:
   - python: "3.3"
