@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/alonisser/opentaba-server.png?branch=master)](https://travis-ci.org/alonisser/opentaba-server)
 
-This is the server part for http://niryariv.github.com/citymap-client
+This is the server part for http://niryariv.github.com/opentaba-client
 
 The code is Flask based, working with MongoDB as database, Uses redis to handle queue. written to run on Heroku.
 
