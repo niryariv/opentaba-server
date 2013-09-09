@@ -6,7 +6,7 @@ The code is Flask based, working with MongoDB as database, Uses redis to handle 
 
 ## Installation
 
-    git clone https://github.com/niryariv/citymap-server.git
+    git clone https://github.com/niryariv/opentaba-server.git
     cd citymap-server
     pip install -r requirements.txt
     python app.py
