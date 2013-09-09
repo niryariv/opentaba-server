@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/alonisser/opentaba-server.png?branch=master)](https://travis-ci.org/alonisser/opentaba-server)
+[![Build Status](https://travis-ci.org/niryariv/opentaba-server.png?branch=master)](https://travis-ci.org/niryariv/opentaba-server)
 
 This is the server part for http://niryariv.github.com/opentaba-client
 
