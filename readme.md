@@ -33,6 +33,14 @@ On Heroku:
     heroku run python scrape.py -g [all | <gush_id>]
     heroku run worker
     heroku run python clean_db.py
+    
+##TESTING
+
+run the tests (needs ```pip install nose```):
+
+    nosetests
+
+from the project root folder
 
 ## API
 
