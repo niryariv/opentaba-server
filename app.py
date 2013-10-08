@@ -18,19 +18,19 @@ app = Flask(__name__)
 
 MONGO_URL = os.environ.get('MONGOHQ_URL')
 
-if MONGO_URL:	# on Heroku, get a connection
-    m_conn = pymongo.Connection(MONGO_URL)   
-    db = m_conn[urlparse(MONGO_URL).path[1:]]
-    RUNNING_LOCAL = False
-else:			# work locally
-    try:
-        m_conn = pymongo.Connection('localhost', 27017)
-    except ConnectionFailure:
-        print('You should have mongodb running')
+if MONGO_URL:  # on Heroku, get a connection
+	m_conn = pymongo.Connection(MONGO_URL)
+	db = m_conn[urlparse(MONGO_URL).path[1:]]
+	RUNNING_LOCAL = False
+else:  # work locally
+	try:
+		m_conn = pymongo.Connection('localhost', 27017)
+	except ConnectionFailure:
+		print('You should have mongodb running')
 
-    db = m_conn['citymap']
-    RUNNING_LOCAL = True
-    app.debug = True # since we're local, keep debug on
+	db = m_conn['citymap']
+	RUNNING_LOCAL = True
+	app.debug = True  # since we're local, keep debug on
 
 
 #### Helpers ####
@@ -46,6 +46,34 @@ def _resp(data):
 	r.headers['Content-Type'] = "application/json; charset=utf-8"
 	return r
 
+
+def _plans_query_to_atom_feed(request, query={}):
+	'''
+	Create an atom feed of plans fetched from the DB based on an optional query
+	'''
+	plans = db.plans.find(query, limit=2000).sort([("year", pymongo.DESCENDING), ("month", pymongo.DESCENDING), ("day", pymongo.DESCENDING)])
+	blacklist = db.blacklist.find_one()['blacklist']
+	plans_clean = [p for p in list(plans) if p['number'] not in blacklist]
+
+	feed = AtomFeed("OpenTABA", feed_url=request.url, url=request.url_root)
+
+	for p in plans_clean:
+		url = 'http://mmi.gov.il/IturTabot/taba4.asp?' + url_encode({'kod' : 3000, 'MsTochnit' : p['number']}, charset='windows-1255')
+		try:
+			feed.add(
+				title	=p['essence'],
+				content	=p['status'] + p['number'],
+				content_type='html',
+				author="OpenTABA.info",
+				id	=url + '&status=' + p['status'],  # this is a unique ID (not real URL) so adding status to ensure uniqueness in TBA stages
+				url=url,
+				updated=datetime.date(p['year'], p['month'], p['day'])
+			)
+		except ValueError:
+			# happens when title is empty, for now skipping
+			pass
+
+	return feed
 
 #### ROUTES ####
 
@@ -72,7 +100,7 @@ def get_plans(gush_id):
 		abort(404)
 
 	plans = db.plans.find({"gush_id" : gush_id}).sort([("year", pymongo.DESCENDING), ("month", pymongo.DESCENDING), ("day", pymongo.DESCENDING)])
-	
+
 	# eliminate plans which appear in >99 blocks - cover for MMI's database bugs
 	blacklist = db.blacklist.find_one()['blacklist']
 
@@ -83,28 +111,21 @@ def get_plans(gush_id):
 
 @app.route('/feed')
 def atom_feed():
-	feed = AtomFeed("OpenTABA", feed_url=request.url, url=request.url_root)
+	return _plans_query_to_atom_feed(request).get_response()
 
-	plans = db.plans.find(limit=2000).sort([("year", pymongo.DESCENDING), ("month", pymongo.DESCENDING), ("day", pymongo.DESCENDING)])
 
-	blacklist = db.blacklist.find_one()['blacklist']
-	plans_clean = [p for p in list(plans) if p['number'] not in blacklist]
-
-	for p in plans_clean:
-		url = 'http://mmi.gov.il/IturTabot/taba4.asp?' + url_encode({'kod' : 3000, 'MsTochnit' : p['number']}, charset='windows-1255')
-
-		feed.add(
-			title 	= p['essence'],
-			content	=p['status'] + p['number'],
-			content_type = 'html',
-			author = "OpenTABA.info",
-			id	= url + '&status=' + p['status'], # this is a unique ID (not real URL) so adding status to ensure uniqueness in TBA stages
-			url = url, 
-			updated=datetime.date(p['year'], p['month'], p['day'])
-		)
-
-	return feed.get_response()
-
+@app.route('/feed/gush/<gushim>')
+def atom_feed_gush(gushim):
+	'''
+	Create a feed for one or more gush IDs. 
+	The URL format for multiple gushim is something like /feed/gush/12340|12350|12360
+	'''
+	gushim = gushim.split('|')
+	if len(gushim) > 1:
+		query = {"gush_id": {"$in": gushim}}
+	else:
+		query = {"gush_id": gushim[0]}
+	return _plans_query_to_atom_feed(request, query).get_response()
 
 
 # TODO add some text on the project
@@ -118,7 +139,7 @@ def hello():
 	return out
 
 
-# wake up heroku dyno from idle. perhaps can if >1 dynos 
+# wake up heroku dyno from idle. perhaps can if >1 dynos
 # used as endpoint for a "wakeup" request when the client inits
 @app.route('/wakeup')
 def wakeup():
@@ -128,9 +149,9 @@ def wakeup():
 #### MAIN ####
 
 if __name__ == '__main__':
-    # Bind to PORT if defined, otherwise default to 5000.
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+	# Bind to PORT if defined, otherwise default to 5000.
+	port = int(os.environ.get('PORT', 5000))
+	app.run(host='0.0.0.0', port=port)
 
 
 
