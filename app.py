@@ -63,20 +63,21 @@ def _plans_query_to_atom_feed(request, query={}):
     for p in plans_clean:
         url = 'http://mmi.gov.il/IturTabot/taba4.asp?' + url_encode({'kod': 3000, 'MsTochnit': p['number']},
                                                                     charset='windows-1255')
-        try:
-            feed.add(
-                title=p['essence'],
-                content=p['status'] + p['number'],
-                content_type='html',
-                author="OpenTABA.info",
-                id=url + '&status=' + p['status'],
-                # this is a unique ID (not real URL) so adding status to ensure uniqueness in TBA stages
-                url=url,
-                updated=datetime.date(p['year'], p['month'], p['day'])
-            )
-        except ValueError:
-            # happens when title is empty, for now skipping
-            pass
+        content = p['status'] + p['number']
+        title = p['essence']
+        if not title:
+            title = content
+
+        feed.add(
+            title=title,
+            content=content,
+            content_type='html',
+            author="OpenTABA.info",
+            id=url + '&status=' + p['status'],
+            # this is a unique ID (not real URL) so adding status to ensure uniqueness in TBA stages
+            url=url,
+            updated=datetime.date(p['year'], p['month'], p['day'])
+        )
 
     return feed
 
