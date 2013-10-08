@@ -1,12 +1,12 @@
-[![Build Status](https://travis-ci.org/alonisser/opentaba-server.png?branch=master)](https://travis-ci.org/alonisser/opentaba-server)
+[![Build Status](https://travis-ci.org/niryariv/opentaba-server.png?branch=master)](https://travis-ci.org/niryariv/opentaba-server)
 
-This is the server part for http://niryariv.github.com/citymap-client
+This is the server part for http://niryariv.github.com/opentaba-client
 
 The code is Flask based, working with MongoDB as database, Uses redis to handle queue. written to run on Heroku.
 
 ## Installation
 
-    git clone https://github.com/niryariv/citymap-server.git
+    git clone https://github.com/niryariv/opentaba-server.git
     cd citymap-server
     pip install -r requirements.txt
     python app.py
@@ -33,6 +33,14 @@ On Heroku:
     heroku run python scrape.py -g [all | <gush_id>]
     heroku run worker
     heroku run python clean_db.py
+    
+##TESTING
+
+run the tests (needs ```pip install nose```):
+
+    nosetests
+
+from the project root folder
 
 ## API
 
