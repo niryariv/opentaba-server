@@ -50,14 +50,14 @@ def _resp(data):
 #### ROUTES ####
 
 # get gush_id metadata
-@app.route('/gushim')
+@app.route('/gushim.json')
 def get_gushim():
 	gushim = db.gushim.find(fields={'gush_id': True, '_id' : False})
 	return _resp(list(gushim))
 
 
 # get gush_id metadata
-@app.route('/gush/<gush_id>')
+@app.route('/gush/<gush_id>.json')
 def get_gush(gush_id):
 	gush = db.gushim.find_one({"gush_id" : gush_id})
 	if gush is None:
@@ -66,7 +66,7 @@ def get_gush(gush_id):
 
 
 # get plans from gush_id
-@app.route('/gush/<gush_id>/plans')
+@app.route('/gush/<gush_id>/plans.json')
 def get_plans(gush_id):
 	if db.gushim.find_one({"gush_id" : gush_id}) is None:
 		abort(404)
@@ -81,7 +81,7 @@ def get_plans(gush_id):
 	return _resp(plans_clean)
 
 
-@app.route('/feed')
+@app.route('/feed.atom')
 def atom_feed():
 	feed = AtomFeed("OpenTABA", feed_url=request.url, url=request.url_root)
 
