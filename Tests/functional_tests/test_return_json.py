@@ -18,37 +18,37 @@ def teardown():
 @with_setup(setup, teardown)
 def test_root_working():
     response = testapp.get('/')
-    eq_(response.status_code,200)
+    eq_(response.status_code, 200)
     msg = "reached the server side"
     assert_true(msg in response.data)
 
 @with_setup(setup, teardown)
 def test_api_gushim():
-    response = testapp.get('/gushim')
+    response = testapp.get('/gushim.json')
     print(dir(response))
     j = json.loads(response.data)
-    eq_(len(j), 644) #the correct number
+    eq_(len(j), 644)  # the correct number
     eq_(response.status_code, 200)
     eq_(response.mimetype, 'application/json')
 
 @with_setup(setup, teardown)
 def test_api_get_gush():
-    response = testapp.get('/gush/30649')
+    response = testapp.get('/gush/30649.json')
     j = json.loads(response.data)
     eq_(response.status_code, 200)
     eq_(response.mimetype, 'application/json')
-    eq_(j.keys(), ['_id','gush_id', 'last_checked_at', 'html_hash'])
+    eq_(j.keys(), ['_id', 'gush_id', 'last_checked_at', 'html_hash'])
     eq_(j['gush_id'], '30649')
 
 @with_setup(setup, teardown)
 def test_api_get_plan():
-    response = testapp.get('/gush/30649/plans')
+    response = testapp.get('/gush/30649/plans.json')
     j = json.loads(response.data)
     eq_(response.status_code, 200)
     eq_(response.mimetype, 'application/json')
     assert_true(len(j) >= 10 ) # I don't know the correct number, since it's changes with each update, but it should be more then this
     sample = j[0]
-    eq_(sample.keys(),[u'status',
+    eq_(sample.keys(), [u'status',
                         u'tasrit_link',
                         u'gush_id',
                         u'area',
@@ -68,7 +68,7 @@ def test_api_get_plan():
     msg = 'taba4.asp'
     assert_true(msg in sample['details_link'])
     eq_(sample['takanon_link'], [])
-    #eq_(sample['essence'], u"השלמת קומה והרחבות דיור")
+    # eq_(sample['essence'], u"השלמת קומה והרחבות דיור")
 
 
 @with_setup(setup, teardown)
