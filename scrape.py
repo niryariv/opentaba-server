@@ -1,4 +1,4 @@
-from optparse import OptionParser
+from optparse import OptionParser, SUPPRESS_HELP
 
 from app import *
 from rq import Queue
@@ -8,7 +8,8 @@ from tools.scrapelib import scrape_gush
 
 parser = OptionParser()
 parser.add_option("-g", dest="gush", help="ID of gush to scrape (-g all to scrape all)")
-parser.add_option("--no-queue", dest="enable_queue", action="store_false", default=True, help="Do not use Redis queuing")
+# Do not use Redis queuing - for Windows devs. DO NOT USE ON PRODUCTION
+parser.add_option("--no-queue", dest="enable_queue", action="store_false", default=True, help=SUPPRESS_HELP) 
 
 (options, args) = parser.parse_args()
 
@@ -27,6 +28,7 @@ else:
     gushim = [db.gushim.find_one({"gush_id" : gush_id})]
 
 print(gushim)
+
 # enqueue them
 for g in gushim:
 	if options.enable_queue:
