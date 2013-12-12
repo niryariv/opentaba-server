@@ -8,6 +8,7 @@ The code is Flask based, working with MongoDB as database, Uses redis to handle 
 
     git clone https://github.com/niryariv/opentaba-server.git
     cd opentaba-server
+    virtualenv .
     pip install -r requirements.txt
     python app.py
 
