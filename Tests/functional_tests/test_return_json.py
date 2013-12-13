@@ -33,20 +33,20 @@ def test_api_gushim():
 
 @with_setup(setup, teardown)
 def test_api_get_gush():
-    response = testapp.get('/gush/30035')
+    response = testapp.get('/gush/30649')
     j = json.loads(response.data)
     eq_(response.status_code, 200)
     eq_(response.mimetype, 'application/json')
     eq_(j.keys(), ['_id','gush_id', 'last_checked_at', 'html_hash'])
-    eq_(j['gush_id'], '30035')
+    eq_(j['gush_id'], '30649')
 
 @with_setup(setup, teardown)
 def test_api_get_plan():
-    response = testapp.get('/gush/30035/plans')
+    response = testapp.get('/gush/30649/plans')
     j = json.loads(response.data)
     eq_(response.status_code, 200)
     eq_(response.mimetype, 'application/json')
-    assert_true(len(j) > 10 ) # I don't know the correct number, since it's changes with each update, but it should be more then this
+    assert_true(len(j) >= 10 ) # I don't know the correct number, since it's changes with each update, but it should be more then this
     sample = j[0]
     eq_(sample.keys(),[u'status',
                         u'tasrit_link',
@@ -64,7 +64,7 @@ def test_api_get_plan():
                         u'_id',
                         u'day'])
     #eq_(sample['status'], u"פרסום בעיתונות להפקדה ")
-    eq_(sample['gush_id'], '30035')
+    eq_(sample['gush_id'], '30649')
     msg = 'taba4.asp'
     assert_true(msg in sample['details_link'])
     eq_(sample['takanon_link'], [])
