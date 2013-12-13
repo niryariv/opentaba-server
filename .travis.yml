@@ -18,7 +18,7 @@ before_script:
   - python create_db.py --force
   - mkdir filecache
   - chmod -R 0777 filecache 
-  - python scrape.py -g 30035
+  - python scrape.py -g 30649
   - python worker.py
   - python clean_db.py
 
