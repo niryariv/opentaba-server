@@ -40,7 +40,10 @@ On Heroku:
 run the tests (needs ```pip install nose```):
 
     nosetests
+or for a specifc test
 
+    nosetests Tests/path/to/test
+    
 from the project root folder
 
 ## API
