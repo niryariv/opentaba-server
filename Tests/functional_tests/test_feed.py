@@ -17,7 +17,7 @@ def teardown():
 
 @with_setup(setup, teardown)
 def test_basic_feed_sane():
-    response = testapp.get('/feed')
+    response = testapp.get('/feed.atom')
     eq_(response.status_code, 200)
 
     # Check that the XML tree is parsable and is an ATOM feed
