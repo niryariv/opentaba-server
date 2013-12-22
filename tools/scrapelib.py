@@ -5,6 +5,7 @@ import datetime
 import re
 #import md5
 from hashlib import md5
+import sys
 
 from app import *
 
@@ -107,7 +108,7 @@ def extract_data(html):
 
 
 # accepts a gush object, scrapes date from gush URL and saves it into the plans collection
-def scrape_gush(gush):
+def scrape_gush(gush, RUN_FOLDER =False ): # run_folder is for testing.. 
 
 	gush_id = gush['gush_id']
 
@@ -115,6 +116,12 @@ def scrape_gush(gush):
 	
 	if RUNNING_LOCAL:
 		local_cache = "filecache/%s.html" % gush_id
+                if RUN_FOLDER:
+                  local_cache = os.path.join(RUN_FOLDER,local_cache) 
+                print ('local_cache',local_cache)
+
+
+                
 		if os.path.exists(local_cache):
 			print ("reading local file %s" % local_cache)
 			html = open(local_cache, 'r').read()
@@ -138,6 +145,11 @@ def scrape_gush(gush):
 
 	print ("HTML new, inserting data")
 	data = extract_data(html)
+        # Testin[g
+        if app.config['TESTING'] :
+          return data;
+
+
 	for i in data:	
 		i['gush_id']=gush_id
 		

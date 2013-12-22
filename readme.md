@@ -40,7 +40,10 @@ On Heroku:
 run the tests (needs ```pip install nose```):
 
     nosetests
+or for a specifc test
 
+    nosetests Tests/path/to/test
+    
 from the project root folder
 
 ## API
@@ -124,4 +127,7 @@ Get plans for a block:
     [{"gush_id": "30019S"}, {"gush_id": "30000"}, {"gush_id": "30001"}, {"gush_id": "30002"}, {"gush_id": "30003"}, {"gush_id": "30004"}, {"gush_id": "30005"}, {"gush_id": "30006"}, {"gush_id": "30007"}, {"gush_id": "30008"}, {"gush_id": "30009"}, {"gush_id": "30010"}, {"gush_id": "30011"}, {"gush_id": "30012"}, {"gush_id": "30013"}, {"gush_id": "30014"}, {"gush_id": "30015"}, {"gush_id": "30016"}, {"gush_id": "30017"}, {"gush_id": "30018"}, {"gush_id": "30019"}, {"gush_id": "30020"}, {"gush_id": "30021"}, {"gush_id": "30022"}, {"gush_id": "30023"}, {"gush_id": "30024"}, {"gush_id": "30025"}, {"gush_id": "30026"}, {"gush_id": "30027"}, {"gush_id": "30028"}, {"gush_id": "30029"}, {"gush_id": "30030"}, {"gush_id": "30031"}, {"gush_id": "30032"}, {"gush_id": "30033"}, {"gush_id": "30034"}, {"gush_id": "30035"}, {"gush_id": "30036"}, {"gush_id": "30037"}, {"gush_id": "30038"}, {"gush_id": "30039"}, {"gush_id": "30040"}, {"gush_id": "30041"}, {"gush_id": "30042"}, {"gush_id": "30043"}, {"gush_id": "30044"}, {"gush_id": "30045"}, {"gush_id": "30046"}, {"gush_id": "30047"}, {"gush_id": "30048"}, {"gush_id": "30049"}, {"gush_id": "30050"}, {"gush_id": "30051"}, {"gush_id": "30052"}, {"gush_id": "30053"}, {"gush_id": "30054"}, {"gush_id": "30055"}, {"gush_id": "30056"}, {"gush_id": "30057"}, {"gush_id": "30058"}, {"gush_id": "30059"}, {"gush_id": "30060"}, {"gush_id": "30061"},
     ....
     ]
-    
+
+## Feed
+
+currently two ATOM kinds of feeds supported:```/feed``` to get the whole feed and ```/feed/gush/1234|1235|1236```  for specifc list (or one) gush.more to come
