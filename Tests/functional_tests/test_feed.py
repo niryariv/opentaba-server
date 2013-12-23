@@ -9,11 +9,14 @@ from lxml import etree
 
 testapp = app.test_client()
 
+
 def setup():
     app.config['TESTING'] = True
 
+
 def teardown():
     app.config['TESTING'] = False
+
 
 @with_setup(setup, teardown)
 def test_basic_feed_sane():
