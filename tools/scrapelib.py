@@ -1,12 +1,15 @@
 from bs4 import BeautifulSoup
 import requests
 import re
+import logging
 from hashlib import md5
 
 from app import *
 
 date_pattern = re.compile(r'(\d+/\d+/\d+)')
 SITE_ENCODING = 'windows-1255'
+
+log = logging.getLogger(__name__)
 
 
 def url_for_gush(gush_id):
@@ -18,15 +21,15 @@ def get_gush_html(gush_id):
     Get HTML page for gush_id from the Minhal's website
     """
     download_url = url_for_gush(gush_id)
-    print (download_url)
+    log.debug("About to download Gush HTML from %s", download_url)
 
     try:
         r = requests.get(download_url)
         if r.status_code != 200:
-            raise Exception("Status code: %s" % r.status_code)
+            raise Exception("Unexpected status code: %s" % r.status_code)
     except Exception, e:
-        print ("ERROR: %s" % e)
-        exit()
+        log.exception("ERROR: %s", e)
+        exit(1)
 
     r.encoding = SITE_ENCODING
     html = r.text
@@ -114,16 +117,16 @@ def scrape_gush(gush, RUN_FOLDER=False):
 
     gush_id = gush['gush_id']
 
-    print ("checking gush %s" % gush_id)
+    log.info("Checking gush #%s", gush_id)
 
     if RUNNING_LOCAL:
         local_cache = "filecache/%s.html" % gush_id
         if RUN_FOLDER:
             local_cache = os.path.join(RUN_FOLDER, local_cache)
-        print ('local_cache', local_cache)
+        log.info("Running locally, cache file is %s", local_cache)
 
         if os.path.exists(local_cache):
-            print ("reading local file %s" % local_cache)
+            log.debug("Reading existing cache file %s", local_cache)
             html = open(local_cache, 'r').read()
         else:
             html = get_gush_html(gush_id)
@@ -139,10 +142,10 @@ def scrape_gush(gush, RUN_FOLDER=False):
     # check if the html matches a pre-read html
     # html_hash = md5.new(html.encode('utf-8')).hexdigest()
     if gush["html_hash"] == html_hash:
-        print ("duplicate HTML - returning")
+        log.debug("Gush HTML is not modified, returning")
         return True
 
-    print ("HTML new, inserting data")
+    log.debug("Gush HTML is modified, inserting data")
     data = extract_data(html)
 
     # Testing
@@ -151,10 +154,10 @@ def scrape_gush(gush, RUN_FOLDER=False):
 
     for i in data:
         i['gush_id'] = gush_id
-        print ("Inserting item: %s" % i)
+        log.debug("Inserting plan data: %s", i)
         db.plans.insert(i)
 
-    print ("updating gush html_hash, last_checked_at")
+    log.debug("updating gush html_hash, last_checked_at")
     gush["html_hash"] = html_hash
     gush["last_checked_at"] = datetime.datetime.now()
     db.gushim.save(gush)
