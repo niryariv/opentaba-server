@@ -1,39 +1,56 @@
+"""
+Main script for scrapping the MMI site
+"""
+
+import sys
+import logging
 from optparse import OptionParser, SUPPRESS_HELP
-
-from app import *
 from rq import Queue
+from app import *
 from worker import conn
-
 from tools.scrapelib import scrape_gush
 
-parser = OptionParser()
-parser.add_option("-g", dest="gush", help="ID of gush to scrape (-g all to scrape all)")
-# Do not use Redis queuing - for Windows devs. DO NOT USE ON PRODUCTION
-parser.add_option("--no-queue", dest="enable_queue", action="store_false", default=True, help=SUPPRESS_HELP)
 
-(options, args) = parser.parse_args()
+def scrape(gush_id, no_queue=False):
+    log = logging.getLogger(__name__)
+    log.info("Scrapping gush: %s", gush_id)
 
-if not options.gush:
-    print ("must include -g <gush ID>")
-    exit()
-
-gush_id = options.gush
-print(gush_id)
-
-# find gush/im
-if gush_id == "all":
-    gushim = db.gushim.find()
-else:
-    gushim = [db.gushim.find_one({"gush_id": gush_id})]
-
-print(gushim)
-
-# enqueue them
-for g in gushim:
-    if options.enable_queue:
-        q = Queue(connection=conn)
-        print ("Queue gush %s" % g['gush_id'])
-        q.enqueue(scrape_gush, g)
+    # find gush/im
+    if gush_id == "all":
+        gushim = db.gushim.find()
     else:
-        print "Scraping gush %s" % g['gush_id']
-        scrape_gush(g)
+        gushim = [db.gushim.find_one({"gush_id": gush_id})]
+    log.debug("Found gushim: %s", gushim)
+
+    if no_queue:
+        log.warn("redis queuing is disabled, this is not recommended")
+        for g in gushim:
+            log.info("Scraping gush %s", g['gush_id'])
+            scrape_gush(g)
+    else:
+        # enqueue them
+        q = Queue(connection=conn)
+        for g in gushim:
+            log.info("Queuing gush %s for scraping", g['gush_id'])
+            q.enqueue(scrape_gush, g)
+
+
+if __name__ == '__main__':
+    parser = OptionParser()
+    parser.add_option("-g", dest="gush", help="ID of gush to scrape (-g all to scrape all)")
+    # Do not use Redis queuing - for Windows devs. DO NOT USE ON PRODUCTION
+    parser.add_option("--no-queue", dest="no_queue", action="store_true", default=False, help=SUPPRESS_HELP)
+    parser.add_option("--verbose", dest="verbose", action="store_true", default=False, help="Print verbose debugging information")
+    (options, args) = parser.parse_args()
+
+    if not options.gush:
+        sys.stderr.write("Error: please specify -g <gush ID>\n")
+        sys.exit(1)
+
+    if options.verbose:
+        lvl = logging.DEBUG
+    else:
+        lvl = logging.INFO
+
+    logging.basicConfig(format='%(asctime)-15s %(name)s %(levelname)s %(message)s', level=lvl)
+    scrape(options.gush, no_queue=options.no_queue)
