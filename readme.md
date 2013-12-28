@@ -48,8 +48,6 @@ from the project root folder
 
 ## API
 
-Currently only two API calls are supported (and some helpers).
-
 Get block (gush) data:
 
     GET /gush/30035.json
@@ -128,6 +126,48 @@ Get plans for a block:
     ....
     ]
 
-## Feed
 
-currently two ATOM kinds of feeds supported:```/feed.atom``` to get the whole feed and ```/feed/gush/1234|1235|1236```  for specifc list (or one) gush.more to come
+Get an ATOM feed of recent plans (across all gushim):
+
+    GET /feed.atom
+
+    <?xml version="1.0" encoding="utf-8"?>
+    <feed xmlns="http://www.w3.org/2005/Atom">
+      <title type="text">OpenTABA</title>
+      <id>http://opentaba-server.herokuapp.com/feed.atom</id>
+      <updated>2013-11-28T00:00:00Z</updated>
+      <link href="http://opentaba-server.herokuapp.com/" />
+      <link href="http://opentaba-server.herokuapp.com/feed.atom" rel="self" />
+      <generator>Werkzeug</generator>
+      <entry xml:base="http://opentaba-server.herokuapp.com/feed.atom">
+        <title type="text">פארק עמק רפאים</title>
+        <id>http://mmi.gov.il/IturTabot/taba4.asp?kod=3000&amp;MsTochnit=12222&amp;status=פרסום תוקף ברשומות </id>
+        <updated>2013-11-28T00:00:00Z</updated>
+        <link href="http://mmi.gov.il/IturTabot/taba4.asp?kod=3000&amp;MsTochnit=12222" />
+        <author>
+          <name>OpenTABA.info</name>
+        </author>
+        <content type="html">פרסום תוקף ברשומות 12222</content>
+      </entry>
+      <entry xml:base="http://opentaba-server.herokuapp.com/feed.atom">
+        <title type="text">פארק עמק רפאים</title>
+        <id>http://mmi.gov.il/IturTabot/taba4.asp?kod=3000&amp;MsTochnit=12222&amp;status=פרסום תוקף ברשומות </id>
+        <updated>2013-11-28T00:00:00Z</updated>
+        <link href="http://mmi.gov.il/IturTabot/taba4.asp?kod=3000&amp;MsTochnit=12222" />
+        <author>
+          <name>OpenTABA.info</name>
+        </author>
+        <content type="html">פרסום תוקף ברשומות 12222</content>
+      </entry>
+      <entry xml:base="http://opentaba-server.herokuapp.com/feed.atom">
+        <title type="text">פארק עמק רפאים</title>
+        <id>http://mmi.gov.il/IturTabot/taba4.asp?kod=3000&amp;MsTochnit=12222&amp;status=פרסום תוקף ברשומות </id>
+        <updated>2013-11-28T00:00:00Z</updated>
+        <link href="http://mmi.gov.il/IturTabot/taba4.asp?kod=3000&amp;MsTochnit=12222" />
+        <author>
+          <name>OpenTABA.info</name>
+        </author>
+        <content type="html">פרסום תוקף ברשומות 12222</content>
+      </entry>
+      ...
+    </feed>
