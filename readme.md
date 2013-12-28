@@ -159,15 +159,5 @@ Get an ATOM feed of recent plans (across all gushim):
         </author>
         <content type="html">פרסום תוקף ברשומות 12222</content>
       </entry>
-      <entry xml:base="http://opentaba-server.herokuapp.com/feed.atom">
-        <title type="text">פארק עמק רפאים</title>
-        <id>http://mmi.gov.il/IturTabot/taba4.asp?kod=3000&amp;MsTochnit=12222&amp;status=פרסום תוקף ברשומות </id>
-        <updated>2013-11-28T00:00:00Z</updated>
-        <link href="http://mmi.gov.il/IturTabot/taba4.asp?kod=3000&amp;MsTochnit=12222" />
-        <author>
-          <name>OpenTABA.info</name>
-        </author>
-        <content type="html">פרסום תוקף ברשומות 12222</content>
-      </entry>
-      ...
+      ....
     </feed>
