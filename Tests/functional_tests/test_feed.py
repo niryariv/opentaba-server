@@ -44,3 +44,21 @@ def test_gush_feed_sane_multi():
     # Check that the XML tree is parsable and is an ATOM feed
     tree = etree.fromstring(response.data)
     eq_("{http://www.w3.org/2005/Atom}feed", tree.tag)
+
+@with_setup(setup, teardown)
+def test_gush_feed_sane_single():
+    response = testapp.get('/feed/gush/30035')
+    eq_(response.status_code, 200)
+
+    # Check that the XML tree is parsable and is an ATOM feed
+    tree = etree.fromstring(response.data)
+    eq_("{http://www.w3.org/2005/Atom}feed", tree.tag)
+
+@with_setup(setup, teardown)
+def test_gush_feed_sane_multi():
+    response = testapp.get('/feed/gush/30035|30036|30037')
+    eq_(response.status_code, 200)
+
+    # Check that the XML tree is parsable and is an ATOM feed
+    tree = etree.fromstring(response.data)
+    eq_("{http://www.w3.org/2005/Atom}feed", tree.tag)
