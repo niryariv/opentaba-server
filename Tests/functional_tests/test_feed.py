@@ -38,7 +38,7 @@ def test_gush_feed_sane_single():
 
 @with_setup(setup, teardown)
 def test_gush_feed_sane_multi():
-    response = testapp.get('/feed/gush/30035|30036|30037.atom')
+    response = testapp.get('/feed/gush/30035,30036,30037.atom')
     eq_(response.status_code, 200)
 
     # Check that the XML tree is parsable and is an ATOM feed
@@ -56,7 +56,7 @@ def test_gush_feed_sane_single():
 
 @with_setup(setup, teardown)
 def test_gush_feed_sane_multi():
-    response = testapp.get('/feed/gush/30035|30036|30037.atom')
+    response = testapp.get('/feed/gush/30035,30036,30037.atom')
     eq_(response.status_code, 200)
 
     # Check that the XML tree is parsable and is an ATOM feed

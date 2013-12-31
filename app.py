@@ -164,9 +164,9 @@ def atom_feed():
 def atom_feed_gush(gushim):
     """
     Create a feed for one or more gush IDs.
-    The URL format for multiple gushim is something like /feed/gush/12340|12350|12360
+    The URL format for multiple gushim is something like /feed/gush/12340,12350,12360
     """
-    gushim = gushim.split('|')
+    gushim = gushim.split(',')
     if len(gushim) > 1:
         query = {"gush_id": {"$in": gushim}}
     else:
