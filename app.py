@@ -121,7 +121,33 @@ def get_gushim():
     """
     get gush_id metadata
     """
-    gushim = db.gushim.find(fields={'gush_id': True, '_id': False})
+    detailed = request.args.get('detailed', '') == 'true'
+    gushim = db.gushim.find(fields={'gush_id': True, 'last_checked_at': True, '_id': False})
+    if detailed:
+        # Flatten list of gushim into a dict
+        g_flat = dict((g['gush_id'], {"gush_id": g['gush_id'],
+                                      "last_checked_at": g['last_checked_at'],
+                                      "plan_stats": {}}) for g in gushim)
+        # Get plan statistics from DB
+        stats = db.plans.aggregate([
+            {"$project": {"gush_id": "$gush_id", "status": "$status", "_id": 0}},
+            {"$group": {"_id": {"gush_id": "$gush_id", "status": "$status"}, "count": {"$sum": 1}}}
+        ])
+
+        # Merge stats into gushim dict
+        for g in stats['result']:
+            try:
+                gush_id = g['_id']['gush_id']
+                status = g['_id']['status']
+                g_flat[gush_id]['plan_stats'][status] = g['count']
+            except KeyError, e:
+                # Gush has plans but is missing from list of gushim?
+                app.logger.warn("Gush #%d has plans but is not listed in the Gushim list", gush_id)
+                app.log_exception(e)
+
+        # De-flatten our dict
+        gushim = g_flat.values()
+
     return _resp(list(gushim))
 
 
