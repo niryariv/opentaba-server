@@ -85,13 +85,13 @@ def extract_data(gush_json):
                "files_link": [],
                "govmap_link": []}
 
-        rec["area"] = plan["mtysvShemYishuv"]
-        rec["number"] = plan["tbMsTochnit"]
+        rec["area"] = strip(plan["mtysvShemYishuv"])
+        rec["number"] = strip(plan["tbMsTochnit"])
         
         bs = BeautifulSoup(plan["Link"], "lxml")
-        rec["details_link"] = bs('a')[0].get('href').replace("javascript:openDetailesPage('", '/IturTabot2/').replace("','", '', 1).raplace("','", '&tbMsTochnit=').replace("')", '')
+        rec["details_link"] = bs('a')[0].get('href').replace("javascript:openDetailesPage('", 'http://mmi.gov.il/IturTabot2/').replace("','", '', 1).raplace("','", '&tbMsTochnit=').replace("')", '')
 
-        rec["status"] = plan["Status"]
+        rec["status"] = strip(plan["Status"])
 
         matchdate = re.search(date_pattern, rec["status"])
         if matchdate:
@@ -101,20 +101,20 @@ def extract_data(gush_json):
             rec["day"], rec["month"], rec["year"] = [int(i) for i in d.split('/')]
             rec["status"] = rec["status"].replace(d, '').strip()
 
-        rec["essence"] = plan["tbMahut"]
+        rec["essence"] = strip(plan["tbMahut"])
 
         if plan["Takanon"] is not None:
-            bs = BeautifulSoup(plan["Takanon"], "lxml") # IS THIS GOOD OR WILL TO MUCH BEAUTIFULSOUPS BE SUPERSLOW?
+            bs = BeautifulSoup(plan["Takanon"], "lxml")
             for i in bs("a"):
-                rec["takanon_link"].append(i.get("href"))
+                rec["takanon_link"].append('http://mmi.gov.il/' + i.get("href"))
 
         bs = BeautifulSoup(plan["Tasrit"], "lxml")
         for i in bs("a"):
-            rec["tasrit_link"].append(i.get("href"))
+            rec["tasrit_link"].append('http://mmi.gov.il/' + i.get("href"))
 
         bs = BeautifulSoup(plan["Nispach"], "lxml")
         for i in bs("a"):
-            rec["nispahim_link"].append(i.get("href"))
+            rec["nispahim_link"].append('http://mmi.gov.il/' + i.get("href"))
 
         if plan["Mmg"] is not None:
             bs = BeautifulSoup(plan["Mmg"], "lxml")
