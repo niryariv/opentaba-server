@@ -6,11 +6,11 @@ import logging
 import json
 from hashlib import md5
 
-from app import *
+#from app import *
 
 date_pattern = re.compile(r'(\d+/\d+/\d+)')
 SITE_ENCODING = 'windows-1255'
-
+RUNNING_LOCAL = False
 log = logging.getLogger(__name__)
 
 
@@ -85,13 +85,13 @@ def extract_data(gush_json):
                "files_link": [],
                "govmap_link": []}
 
-        rec["area"] = strip(plan["mtysvShemYishuv"])
-        rec["number"] = strip(plan["tbMsTochnit"])
+        rec["area"] = plan["mtysvShemYishuv"].strip()
+        rec["number"] = plan["tbMsTochnit"].strip()
         
         bs = BeautifulSoup(plan["Link"], "lxml")
-        rec["details_link"] = bs('a')[0].get('href').replace("javascript:openDetailesPage('", 'http://mmi.gov.il/IturTabot2/').replace("','", '', 1).raplace("','", '&tbMsTochnit=').replace("')", '')
+        rec["details_link"] = bs('a')[0].get('href').replace("javascript:openDetailesPage('", 'http://mmi.gov.il/IturTabot2/').replace("','", '', 1).replace("','", '&tbMsTochnit=').replace("')", '')
 
-        rec["status"] = strip(plan["Status"])
+        rec["status"] = plan["Status"].strip()
 
         matchdate = re.search(date_pattern, rec["status"])
         if matchdate:
@@ -101,20 +101,20 @@ def extract_data(gush_json):
             rec["day"], rec["month"], rec["year"] = [int(i) for i in d.split('/')]
             rec["status"] = rec["status"].replace(d, '').strip()
 
-        rec["essence"] = strip(plan["tbMahut"])
+        rec["essence"] = plan["tbMahut"].strip()
 
         if plan["Takanon"] is not None:
             bs = BeautifulSoup(plan["Takanon"], "lxml")
             for i in bs("a"):
-                rec["takanon_link"].append('http://mmi.gov.il/' + i.get("href"))
+                rec["takanon_link"].append('http://mmi.gov.il' + i.get("href"))
 
         bs = BeautifulSoup(plan["Tasrit"], "lxml")
         for i in bs("a"):
-            rec["tasrit_link"].append('http://mmi.gov.il/' + i.get("href"))
+            rec["tasrit_link"].append('http://mmi.gov.il' + i.get("href"))
 
         bs = BeautifulSoup(plan["Nispach"], "lxml")
         for i in bs("a"):
-            rec["nispahim_link"].append('http://mmi.gov.il/' + i.get("href"))
+            rec["nispahim_link"].append('http://mmi.gov.il' + i.get("href"))
 
         if plan["Mmg"] is not None:
             bs = BeautifulSoup(plan["Mmg"], "lxml")
@@ -169,8 +169,8 @@ def scrape_gush(gush, RUN_FOLDER=False):
     data = extract_data(gush_json)
 
     # Testing
-    if app.config['TESTING']:
-        return data
+    #if app.config['TESTING']:
+    return data
 
     for i in data:
         i['gush_id'] = gush_id
