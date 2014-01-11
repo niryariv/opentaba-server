@@ -1,7 +1,9 @@
 from bs4 import BeautifulSoup
+import lxml
 import requests
 import re
 import logging
+import json
 from hashlib import md5
 
 from app import *
@@ -12,47 +14,63 @@ SITE_ENCODING = 'windows-1255'
 log = logging.getLogger(__name__)
 
 
-def url_for_gush(gush_id):
-    return "http://mmi.gov.il/IturTabot/taba2.asp?Gush=%s&fromTaba1=true" % gush_id
+def get_gush_json_page(requests_session, page_num, cookie, view_state, data_source):
+    r = requests_session.post('http://mmi.gov.il/IturTabot2/taba1.aspx', cookies=cookie, data={'scriptManagerId_HiddenField':None,'__EVENTTARGET':None,'__EVENTARGUMENT':None,'__VIEWSTATE':view_state,'cpe_ClientState':None,'txtMsTochnit':None,'cmsStatusim$textBox':None,'txtGush':None,'txtwinCal1$textBox':None,'txtwinCal1$popupWin$time':None,'txtwinCal1$popupWin$mskTime_ClientState':None,'txtFromHelka':None,'txtwinCal2$textBox':None,'txtwinCal2$popupWin$time':None,'txtwinCal2$popupWin$mskTime_ClientState':None,'txtMakom':None,'cmsMerchaveiTichnun$textBox':None,'cmsYeudRashi$textBox':None,'txtMatara':None,'cmsYeshuvim$textBox':None,'cmsKodAchrai$textBox':None,'cmsTakanon$textBox':None,'txtAchrai':None,'cmsSug$textBox':None,'cmsMmg$textBox':None,'cmsKodMetachnen$textBox':None,'cmsTasrit$textBox':None,'txtMetachnen':None,'__CALLBACKID':'scriptManagerId','__CALLBACKPARAM':'Mmi.Tashtiot.UI.AjaxComponent.TableView$#$~$#$GetData$#${"P0":"'+data_source+'","P1":'+str(page_num)+',"P2":-1,"P3":"~","P4":"~","P5":"~","P6":true,"P7":true}'})
+    return r.text
 
 
-def get_gush_html(gush_id):
+def get_gush_json(gush_id):
     """
-    Get HTML page for gush_id from the Minhal's website
+    Get JSON data for gush_id from the Minhal's website
     """
-    download_url = url_for_gush(gush_id)
-    log.debug("About to download Gush HTML from %s", download_url)
-
+    log.debug("About to download Gush JSON for %i", gush_id)
+    
     try:
-        r = requests.get(download_url)
-        if r.status_code != 200:
-            raise Exception("Unexpected status code: %s" % r.status_code)
+        ses = requests.Session()
+        
+        # Get the base search page and save the aspx session cookie, data source and view state
+        r = ses.get('http://mmi.gov.il/IturTabot2/taba1.aspx')
+        yum = r.cookies
+
+        data_source = re.findall(r'tblView_[A-Za-z0-9]+', r.text)[-1]
+
+        html = BeautifulSoup(r.text, 'lxml', from_encoding=SITE_ENCODING)
+        view_state = html('input', id='__VIEWSTATE')[0]['value']
+    
+        # Tell the server which fields we are displaying
+        r = ses.post('http://mmi.gov.il/IturTabot2/taba1.aspx', cookies=yum, data={'scriptManagerId_HiddenField':None,'__EVENTTARGET':None,'__EVENTARGUMENT':None,'__VIEWSTATE':view_state,'cpe_ClientState':None,'txtMsTochnit':None,'cmsStatusim$textBox':None,'txtGush':None,'txtwinCal1$textBox':None,'txtwinCal1$popupWin$time':None,'txtwinCal1$popupWin$mskTime_ClientState':None,'txtFromHelka':None,'txtwinCal2$textBox':None,'txtwinCal2$popupWin$time':None,'txtwinCal2$popupWin$mskTime_ClientState':None,'txtMakom':None,'cmsMerchaveiTichnun$textBox':None,'cmsYeudRashi$textBox':None,'txtMatara':None,'cmsYeshuvim$textBox':None,'cmsKodAchrai$textBox':None,'cmsTakanon$textBox':None,'txtAchrai':None,'cmsSug$textBox':None,'cmsMmg$textBox':None,'cmsKodMetachnen$textBox':None,'cmsTasrit$textBox':None,'txtMetachnen':None,'__CALLBACKID':'scriptManagerId','__CALLBACKPARAM':'Mmi.Tashtiot.UI.AjaxComponent.TableView$#$~$#$SetColumnList$#${"P0":"'+data_source+'","P1":"mtysvShemYishuv,Link,Status,tbMahut,Takanon,Tasrit,Nispach,Mmg,tbMsTochnit"}'})
+
+        # Send a parameterized request to the server (just search for the gush)
+        r = ses.post('http://mmi.gov.il/IturTabot2/taba1.aspx/getNetuneiTochniotByAllParames', headers={'Content-Type':'application/json'}, cookies=yum, data=json.dumps({'SourceName':data_source,'conMachoz':0,'IsOneRow':False,'rtncol':2,'sKodMetachnen':'~','sKodAchrai':'~','iMachoz':'-1','sKodIshuv':'~','sMisTochnit':'~','sMatara':'~','sMakom':'~','sSug':'~','sVaada':'~','sYeudRashi':'~','sAchrai':'~','sMetachnen':'~','iMaamadMoncipali':'-1','iGush':gush_id,'iFromHelka':'-1','iToHelka':'-1','sTik':'~','sMerchav':'~','sKvutzatStatusim':'~','sFromTaarichStatus':'~','sToTaarichStatus':'~','bBProjects':False,'iNumOfRows':300,'sMmg':'~','sTasrit':'~','sTabaSruka':'~','sTakanon':'~'}))
+
+        result = []
+        page = 0
+    
+        # Get the first page of results and extra data
+        first_page = get_gush_json_page(ses, page, yum, view_state, data_source)
+        result = result + json.loads(re.findall('\[.*?\]', first_page)[0])
+    
+        # Get the number of pages from the first page (every page has this)
+        pages = int(re.findall('\$([\-#0-9]*)', re.findall('\](.*?){', first_page)[0])[7])
+    
+        # Get the rest of the pages
+        while page < pages:
+            page = page + 1
+            result = result + json.loads('[' + re.findall('\[(.*?)\]', get_gush_json_page(ses, page, yum, view_state, data_source))[0] + ']')
+
+        ses.close()
+            
     except Exception, e:
         log.exception("ERROR: %s", e)
         exit(1)
 
-    r.encoding = SITE_ENCODING
-    html = r.text
-
-    return html
+    return json.dumps(result)
 
 
-# helper functions to clean up some hrefs
-def _extract_popoutpdf(js):
-    return "http://mmi.gov.il/%s" % js.replace("javascript:PopOutPdf('", "").replace("');", "")
-
-
-def _extract_popoutmmg(js):
-    return js.replace("javascript:PopOutMmg('", "").replace("');", "")
-
-
-def extract_data(html):
+def extract_data(gush_json):
     data = []
-
-    s = BeautifulSoup(html, "lxml", from_encoding=SITE_ENCODING)
-
-    table = s("table", "highLines")[0]
-    for tr in table("tr", valign="top"):
+    
+    for plan in json.loads(gush_json):
 
         rec = {"area": '',
                "number": '',
@@ -67,11 +85,13 @@ def extract_data(html):
                "files_link": [],
                "govmap_link": []}
 
-        rec["area"] = tr("td", width="80")[0].get_text(strip=True).encode('utf-8')
-        rec["number"] = tr("td", width="120")[0].get_text(strip=True).encode('utf-8')
-        rec["details_link"] = tr("td", width="120")[0].a.get("href")
+        rec["area"] = plan["mtysvShemYishuv"]
+        rec["number"] = plan["tbMsTochnit"]
+        
+        bs = BeautifulSoup(plan["Link"], "lxml")
+        rec["details_link"] = bs('a')[0].get('href').replace("javascript:openDetailesPage('", '/IturTabot2/').replace("','", '', 1).raplace("','", '&tbMsTochnit=').replace("')", '')
 
-        rec["status"] = tr("td", width="210")[0].get_text(strip=True).encode('utf-8')
+        rec["status"] = plan["Status"]
 
         matchdate = re.search(date_pattern, rec["status"])
         if matchdate:
@@ -81,27 +101,29 @@ def extract_data(html):
             rec["day"], rec["month"], rec["year"] = [int(i) for i in d.split('/')]
             rec["status"] = rec["status"].replace(d, '').strip()
 
-        rec["essence"] = tr("td", width="235")[0].get_text(strip=True).encode('utf-8')
+        rec["essence"] = plan["tbMahut"]
 
-        if tr("td", width="40")[0].a:
-            for i in tr("td", width="40")[0].find_all("a"):
-                rec["takanon_link"].append(_extract_popoutpdf(i.get("href")))
+        if plan["Takanon"] is not None:
+            bs = BeautifulSoup(plan["Takanon"], "lxml") # IS THIS GOOD OR WILL TO MUCH BEAUTIFULSOUPS BE SUPERSLOW?
+            for i in bs("a"):
+                rec["takanon_link"].append(i.get("href"))
 
-        if tr("td", width="40")[1].a:
-            for i in tr("td", width="40")[1].find_all("a"):
-                rec["tasrit_link"].append(_extract_popoutpdf(i.get("href")))
+        bs = BeautifulSoup(plan["Tasrit"], "lxml")
+        for i in bs("a"):
+            rec["tasrit_link"].append(i.get("href"))
 
-        if tr("td", width="55")[0].a:
-            for i in tr("td", width="55")[0].find_all("a"):
-                rec["nispahim_link"].append(_extract_popoutpdf(i.get("href")))
+        bs = BeautifulSoup(plan["Nispach"], "lxml")
+        for i in bs("a"):
+            rec["nispahim_link"].append(i.get("href"))
 
-        if tr("td", width="40")[2].a:
-            for i in tr("td", width="40")[2].find_all("a"):
+        if plan["Mmg"] is not None:
+            bs = BeautifulSoup(plan["Mmg"], "lxml")
+            for i in bs("a"):
                 url = i.get("href")
                 if url.endswith(".zip"):
                     rec["files_link"].append(url)
                 elif "PopUpMmg" in url:
-                    rec["govmap_link"].append(_extract_popupmmg(url))
+                    rec["govmap_link"].append(url)
 
         data.append(rec)
 
@@ -127,26 +149,24 @@ def scrape_gush(gush, RUN_FOLDER=False):
 
         if os.path.exists(local_cache):
             log.debug("Reading existing cache file %s", local_cache)
-            html = open(local_cache, 'r').read()
+            gush_json = open(local_cache, 'r').read()
         else:
-            html = get_gush_html(gush_id)
+            gush_json = get_gush_json(gush_id)
             open(local_cache, 'wb').write(html.encode('utf-8'))
 
     else:
-        html = get_gush_html(gush_id)
+        gush_json = get_gush_json(gush_id)
 
-    if isinstance(html, unicode):
-        html = html.encode('utf-8')
-    html_hash = md5(html).hexdigest()
+    json_hash = md5(gush_json).hexdigest()
 
     # check if the html matches a pre-read html
     # html_hash = md5.new(html.encode('utf-8')).hexdigest()
-    if gush["html_hash"] == html_hash:
-        log.debug("Gush HTML is not modified, returning")
+    if gush["html_hash"] == json_hash:
+        log.debug("Gush data is not modified, returning")
         return True
 
-    log.debug("Gush HTML is modified, inserting data")
-    data = extract_data(html)
+    log.debug("Gush data is modified, inserting data")
+    data = extract_data(gush_json)
 
     # Testing
     if app.config['TESTING']:
