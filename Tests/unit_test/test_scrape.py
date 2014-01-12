@@ -27,16 +27,35 @@ def teardown():
 
 
 @with_setup(setup, teardown)
-def test_scrape_wellformed_html():
-    fixture['gush_id'] = 'current.fixed'
+def test_scrape_wellformed_json():
+    fixture['gush_id'] = '30649'
     data = scrape_gush(fixture, RUN_FOLDER)
-    eq_(len(data), 10)
-    eq_(data[0]['year'], 2010)
+    eq_(len(data), 34)
+    eq_(data[0]['year'], 2006)
     eq_(len(data[0]['files_link']), 1)
 
     # ee
 
 
+@with_setup(setup, teardown)
+def test_scrape_empty_result():
+    #when quote mark appears in the middle of a string
+    fixture['gush_id'] = 'empty'
+    data = scrape_gush(fixture, RUN_FOLDER)
+    eq_(len(data), 0)
+    
+"""   
+@with_setup(setup, teardown)
+def test_scrape_quote_mark():
+    #when quote mark appears in the middle of a string
+    fixture['gush_id'] = '30649.bad.quote.mark'
+    data = scrape_gush(fixture, RUN_FOLDER)
+    eq_(len(data), 34)
+    eq_(data[0]['year'], 6)
+    eq_(len(data[0]['files_link']), 1)
+"""
+
+"""
 @with_setup(setup, teardown)
 def test_scrape_missing_open_tr():
     #
@@ -77,16 +96,7 @@ def test_scrape_non_standard_tag():
     eq_(len(data), 10)
     eq_(data[0]['year'], 2010)
     eq_(len(data[0]['files_link']), 1)
-
-
-@with_setup(setup, teardown)
-def test_scrape_quote_mark():
-    #when quote mark appears in the middle of a string
-    fixture['gush_id'] = 'bad.quote.mark'
-    data = scrape_gush(fixture, RUN_FOLDER)
-    eq_(len(data), 10)
-    eq_(data[0]['year'], 2010)
-    eq_(len(data[0]['files_link']), 1)
+"""
 
 #@with_setup(setup, teardown)
 #def test_scrape_mimetype():

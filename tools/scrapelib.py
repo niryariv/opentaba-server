@@ -6,11 +6,11 @@ import logging
 import json
 from hashlib import md5
 
-#from app import *
+from app import *
 
 date_pattern = re.compile(r'(\d+/\d+/\d+)')
 SITE_ENCODING = 'windows-1255'
-RUNNING_LOCAL = False
+
 log = logging.getLogger(__name__)
 
 
@@ -23,7 +23,7 @@ def get_gush_json(gush_id):
     """
     Get JSON data for gush_id from the Minhal's website
     """
-    log.debug("About to download Gush JSON for %i", gush_id)
+    log.debug("About to download Gush JSON for %s", gush_id)
     
     try:
         ses = requests.Session()
@@ -99,6 +99,12 @@ def extract_data(gush_json):
             # rec["date"] = datetime.datetime.strptime(d, "%d/%m/%Y")
             # switched to this instead of datetime - seems to be much faster to query with mongo
             rec["day"], rec["month"], rec["year"] = [int(i) for i in d.split('/')]
+            # silly hack to get the years to look good, because 06 turns to 6. should look into python date parsers...
+            if rec['year'] < 30:
+                rec['year'] = rec['year'] + 2000
+            elif rec['year'] < 100:
+                rec['year'] = rec['year'] + 1900
+            
             rec["status"] = rec["status"].replace(d, '').strip()
 
         rec["essence"] = plan["tbMahut"].strip()
@@ -142,7 +148,7 @@ def scrape_gush(gush, RUN_FOLDER=False):
     log.info("Checking gush #%s", gush_id)
 
     if RUNNING_LOCAL:
-        local_cache = "filecache/%s.html" % gush_id
+        local_cache = "filecache/%s.json" % gush_id
         if RUN_FOLDER:
             local_cache = os.path.join(RUN_FOLDER, local_cache)
         log.info("Running locally, cache file is %s", local_cache)
@@ -169,8 +175,8 @@ def scrape_gush(gush, RUN_FOLDER=False):
     data = extract_data(gush_json)
 
     # Testing
-    #if app.config['TESTING']:
-    return data
+    if app.config['TESTING']:
+        return data
 
     for i in data:
         i['gush_id'] = gush_id
