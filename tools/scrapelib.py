@@ -184,6 +184,6 @@ def scrape_gush(gush, RUN_FOLDER=False):
         db.plans.insert(i)
 
     log.debug("updating gush html_hash, last_checked_at")
-    gush["html_hash"] = html_hash
+    gush["html_hash"] = json_hash
     gush["last_checked_at"] = datetime.datetime.now()
     db.gushim.save(gush)
