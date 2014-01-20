@@ -17,6 +17,7 @@ if not options.force:
 # print "Deleting db.gushim and db.plans"
 db.gushim.drop()
 db.plans.drop()
+db.blacklist.drop()
 
 db.gushim.create_index([('gush_id', 1)], unique=True)
 
