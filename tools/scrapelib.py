@@ -5,6 +5,7 @@ import re
 import logging
 import json
 from hashlib import md5
+from copy import deepcopy
 
 from app import *
 
@@ -64,13 +65,13 @@ def get_gush_json(gush_id):
         log.exception("ERROR: %s", e)
         exit(1)
 
-    return json.dumps(result)
+    return result
 
 
 def extract_data(gush_json):
     data = []
     
-    for plan in json.loads(gush_json):
+    for plan in gush_json:
 
         rec = {"area": '',
                "number": '',
@@ -136,6 +137,19 @@ def extract_data(gush_json):
     return data
 
 
+def hash_json(gush_json):
+    """
+    Returns MD5 hash of the gush's plans json without the Link field, because it contains 
+    a parameter which changes with every request, and it is only the link to the plan's 
+    details on the MMI website so we can keep using an old value
+    """
+    
+    for plan in gush_json: 
+        del plan['Link']
+    
+    return md5(json.dumps(gush_json)).hexdigest()
+
+
 def scrape_gush(gush, RUN_FOLDER=False):
     """
     Accepts a gush object, scrapes date from gush URL and saves it into the plans collection
@@ -155,15 +169,15 @@ def scrape_gush(gush, RUN_FOLDER=False):
 
         if os.path.exists(local_cache):
             log.debug("Reading existing cache file %s", local_cache)
-            gush_json = open(local_cache, 'r').read()
+            gush_json = json.loads(open(local_cache, 'r').read())
         else:
             gush_json = get_gush_json(gush_id)
-            open(local_cache, 'wb').write(gush_json)
+            open(local_cache, 'wb').write(json.dumps(gush_json))
 
     else:
         gush_json = get_gush_json(gush_id)
 
-    json_hash = md5(gush_json).hexdigest()
+    json_hash = hash_json(deepcopy(gush_json))
 
     # check if the html matches a pre-read html
     # html_hash = md5.new(html.encode('utf-8')).hexdigest()
