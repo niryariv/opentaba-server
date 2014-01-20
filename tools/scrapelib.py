@@ -158,7 +158,7 @@ def scrape_gush(gush, RUN_FOLDER=False):
             gush_json = open(local_cache, 'r').read()
         else:
             gush_json = get_gush_json(gush_id)
-            open(local_cache, 'wb').write(html.encode('utf-8'))
+            open(local_cache, 'wb').write(gush_json)
 
     else:
         gush_json = get_gush_json(gush_id)
