@@ -146,8 +146,8 @@ def hash_json(gush_json):
     
     for plan in gush_json: 
         del plan['Link']
-    print json.dumps(gush_json)
-    return md5(json.dumps(gush_json)).hexdigest()
+
+    return md5(json.dumps(gush_json, sort_keys=True)).hexdigest()
 
 
 def scrape_gush(gush, RUN_FOLDER=False):
