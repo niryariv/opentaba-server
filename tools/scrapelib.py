@@ -146,7 +146,7 @@ def hash_json(gush_json):
     
     for plan in gush_json: 
         del plan['Link']
-    
+    print json.dumps(gush_json)
     return md5(json.dumps(gush_json)).hexdigest()
 
 
