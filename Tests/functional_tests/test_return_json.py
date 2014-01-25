@@ -74,7 +74,7 @@ def test_api_get_plan():
                         u'day'])
     #eq_(sample['status'], u"פרסום בעיתונות להפקדה ")
     eq_(sample['gush_id'], '30649')
-    msg = 'taba4.asp'
+    msg = 'taba2.aspx'
     assert_true(msg in sample['details_link'])
     eq_(sample['takanon_link'], [])
     # eq_(sample['essence'], u"השלמת קומה והרחבות דיור")
