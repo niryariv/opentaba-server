@@ -13,7 +13,7 @@ from tools.scrapelib import scrape_gush
 
 def scrape(gush_id, no_queue=False):
     log = logging.getLogger(__name__)
-    log.info("Scrapping gush: %s", gush_id)
+    log.info("Scraping gush: %s", gush_id)
 
     # find gush/im
     if gush_id == "all":
