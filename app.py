@@ -54,7 +54,7 @@ def _plans_query_to_atom_feed(request, query={}, limit=0, feed_title=''):
     """
     Create an atom feed of plans fetched from the DB based on an optional query
     """
-    plans = db.plans.find(query).sort(
+    plans = db.plans.find(query, limit=1000).sort(
         [("year", pymongo.DESCENDING), ("month", pymongo.DESCENDING), ("day", pymongo.DESCENDING)])
     
     # remove duplicate plans (ie when a plan is in >1 gush)
