@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #!/usr/bin/python
 
 import os
@@ -49,20 +50,25 @@ def _resp(data):
     return r
 
 
-def _plans_query_to_atom_feed(request, query={}):
+def _plans_query_to_atom_feed(request, query={}, limit=0, feed_title=''):
     """
     Create an atom feed of plans fetched from the DB based on an optional query
     """
-    plans = db.plans.find(query, limit=2000).sort(
+    plans = db.plans.find(query).sort(
         [("year", pymongo.DESCENDING), ("month", pymongo.DESCENDING), ("day", pymongo.DESCENDING)])
-    blacklist = db.blacklist.find_one()['blacklist']
-    plans_clean = [p for p in list(plans) if p['number'] not in blacklist]
+    
+    # remove duplicate plans (ie when a plan is in >1 gush)
+    seen = set()
+    plans = [p for p in plans if p['number'] not in seen and not seen.add(p['number'])]
 
-    feed = AtomFeed("OpenTABA", feed_url=request.url, url=request.url_root)
+    # of the remains, take the latest N
+    if limit > 0:
+        plans = plans[:limit]
 
-    for p in plans_clean:
-        url = 'http://mmi.gov.il/IturTabot/taba4.asp?' + url_encode({'kod': 3000, 'MsTochnit': p['number']},
-                                                                    charset='windows-1255')
+    feed = AtomFeed(feed_title, feed_url=request.url, url=request.url_root)
+
+    for p in plans:
+        url = p['details_link']
         content = p['status'] + p['number']
         title = p['essence']
         if not title:
@@ -149,23 +155,23 @@ def get_plans(gush_id):
     return _resp(plans_clean)
 
 
-@app.route('/feed.atom')
+@app.route('/plans.atom')
 def atom_feed():
-    return _plans_query_to_atom_feed(request).get_response()
+    return _plans_query_to_atom_feed(request, limit=20, feed_title=u'תב״ע פתוחה - ירושלים').get_response()
 
 
-@app.route('/feed/gush/<gushim>.atom')
+@app.route('/gush/<gushim>/plans.atom')
 def atom_feed_gush(gushim):
     """
     Create a feed for one or more gush IDs.
-    The URL format for multiple gushim is something like /feed/gush/12340,12350,12360
+    The URL format for multiple gushim is something like /gush/12340,12350,12360/plans.atom
     """
     gushim = gushim.split(',')
     if len(gushim) > 1:
         query = {"gush_id": {"$in": gushim}}
     else:
         query = {"gush_id": gushim[0]}
-    return _plans_query_to_atom_feed(request, query).get_response()
+    return _plans_query_to_atom_feed(request, query, feed_title=u'תב״ע פתוחה - ירושלים - גוש %s' % ', '.join(gushim)).get_response()
 
 
 # TODO add some text on the project
