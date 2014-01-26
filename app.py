@@ -50,7 +50,7 @@ def _resp(data):
     return r
 
 
-def _plans_query_to_atom_feed(request, query={}, limit=0):
+def _plans_query_to_atom_feed(request, query={}, limit=0, feed_title=''):
     """
     Create an atom feed of plans fetched from the DB based on an optional query
     """
@@ -65,7 +65,7 @@ def _plans_query_to_atom_feed(request, query={}, limit=0):
     if limit > 0:
         plans = plans[:limit]
 
-    feed = AtomFeed(u'תב״ע פתוחה - ירושלים', feed_url=request.url, url=request.url_root)
+    feed = AtomFeed(feed_title, feed_url=request.url, url=request.url_root)
 
     for p in plans:
         url = p['details_link']
@@ -157,21 +157,21 @@ def get_plans(gush_id):
 
 @app.route('/plans.atom')
 def atom_feed():
-    return _plans_query_to_atom_feed(request, limit=20).get_response()
+    return _plans_query_to_atom_feed(request, limit=20, feed_title=u'תב״ע פתוחה - ירושלים').get_response()
 
 
 @app.route('/gush/<gushim>/plans.atom')
 def atom_feed_gush(gushim):
     """
     Create a feed for one or more gush IDs.
-    The URL format for multiple gushim is something like /feed/gush/12340,12350,12360
+    The URL format for multiple gushim is something like /gush/12340,12350,12360/plans.atom
     """
     gushim = gushim.split(',')
     if len(gushim) > 1:
         query = {"gush_id": {"$in": gushim}}
     else:
         query = {"gush_id": gushim[0]}
-    return _plans_query_to_atom_feed(request, query).get_response()
+    return _plans_query_to_atom_feed(request, query, feed_title=u'תב״ע פתוחה - ירושלים - גוש %s' % ', '.join(gushim)).get_response()
 
 
 # TODO add some text on the project
