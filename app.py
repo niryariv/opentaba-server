@@ -49,20 +49,25 @@ def _resp(data):
     return r
 
 
-def _plans_query_to_atom_feed(request, query={}):
+def _plans_query_to_atom_feed(request, query={}, limit=0):
     """
     Create an atom feed of plans fetched from the DB based on an optional query
     """
-    plans = db.plans.find(query, limit=2000).sort(
+    plans = db.plans.find(query).sort(
         [("year", pymongo.DESCENDING), ("month", pymongo.DESCENDING), ("day", pymongo.DESCENDING)])
-    blacklist = db.blacklist.find_one()['blacklist']
-    plans_clean = [p for p in list(plans) if p['number'] not in blacklist]
+    
+    # remove duplicate plans (ie when a plan is in >1 gush)
+    seen = set()
+    plans = [p for p in plans if p['number'] not in seen and not seen.add(p['number'])]
+
+    # of the remains, take the latest N
+    if limit > 0:
+        plans = plans[:limit]
 
     feed = AtomFeed("OpenTABA", feed_url=request.url, url=request.url_root)
 
-    for p in plans_clean:
-        url = 'http://mmi.gov.il/IturTabot/taba4.asp?' + url_encode({'kod': 3000, 'MsTochnit': p['number']},
-                                                                    charset='windows-1255')
+    for p in plans:
+        url = p['details_link']
         content = p['status'] + p['number']
         title = p['essence']
         if not title:
@@ -151,7 +156,7 @@ def get_plans(gush_id):
 
 @app.route('/feed.atom')
 def atom_feed():
-    return _plans_query_to_atom_feed(request).get_response()
+    return _plans_query_to_atom_feed(request, limit=20).get_response()
 
 
 @app.route('/feed/gush/<gushim>.atom')
