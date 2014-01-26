@@ -154,12 +154,12 @@ def get_plans(gush_id):
     return _resp(plans_clean)
 
 
-@app.route('/feed.atom')
+@app.route('/plans.atom')
 def atom_feed():
     return _plans_query_to_atom_feed(request, limit=20).get_response()
 
 
-@app.route('/feed/gush/<gushim>.atom')
+@app.route('/gush/<gushim>/plans.atom')
 def atom_feed_gush(gushim):
     """
     Create a feed for one or more gush IDs.
