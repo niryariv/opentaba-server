@@ -38,17 +38,17 @@ def test_api_gushim():
 
 @with_setup(setup, teardown)
 def test_api_get_gush():
-    response = testapp.get('/gush/30649.json')
+    response = testapp.get('/gush/28108.json')
     j = json.loads(response.data)
     eq_(response.status_code, 200)
     eq_(response.mimetype, 'application/json')
     eq_(j.keys(), ['_id', 'gush_id', 'last_checked_at', 'html_hash'])
-    eq_(j['gush_id'], '30649')
+    eq_(j['gush_id'], '28108')
 
 
 @with_setup(setup, teardown)
 def test_api_get_plan():
-    response = testapp.get('/gush/30649/plans.json')
+    response = testapp.get('/gush/28108/plans.json')
     j = json.loads(response.data)
     eq_(response.status_code, 200)
     eq_(response.mimetype, 'application/json')
@@ -73,10 +73,10 @@ def test_api_get_plan():
                         u'_id',
                         u'day'])
     #eq_(sample['status'], u"פרסום בעיתונות להפקדה ")
-    eq_(sample['gush_id'], '30649')
+    eq_(sample['gush_id'], '28108')
     msg = 'taba2.aspx'
     assert_true(msg in sample['details_link'])
-    eq_(sample['takanon_link'], [])
+    eq_(sample['takanon_link'], ['http://mmi.gov.il/IturTabotData/takanonim/jerus/1013207.pdf'])
     # eq_(sample['essence'], u"השלמת קומה והרחבות דיור")
 
 
