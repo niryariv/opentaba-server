@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #!/usr/bin/python
 
 import os
@@ -64,7 +65,7 @@ def _plans_query_to_atom_feed(request, query={}, limit=0):
     if limit > 0:
         plans = plans[:limit]
 
-    feed = AtomFeed("OpenTABA", feed_url=request.url, url=request.url_root)
+    feed = AtomFeed(u'תב״ע פתוחה - ירושלים', feed_url=request.url, url=request.url_root)
 
     for p in plans:
         url = p['details_link']
