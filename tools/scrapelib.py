@@ -20,8 +20,9 @@ def get_gush_json_page(requests_session, page_num, cookie, view_state, data_sour
         'http://mmi.gov.il/IturTabot2/taba1.aspx', 
         cookies=cookie, 
         data={'scriptManagerId_HiddenField':None,'__EVENTTARGET':None,'__EVENTARGUMENT':None,'__VIEWSTATE':view_state,'cpe_ClientState':None,'txtMsTochnit':None,'cmsStatusim$textBox':None,'txtGush':None,'txtwinCal1$textBox':None,'txtwinCal1$popupWin$time':None,'txtwinCal1$popupWin$mskTime_ClientState':None,'txtFromHelka':None,'txtwinCal2$textBox':None,'txtwinCal2$popupWin$time':None,'txtwinCal2$popupWin$mskTime_ClientState':None,'txtMakom':None,'cmsMerchaveiTichnun$textBox':None,'cmsYeudRashi$textBox':None,'txtMatara':None,'cmsYeshuvim$textBox':None,'cmsKodAchrai$textBox':None,'cmsTakanon$textBox':None,'txtAchrai':None,'cmsSug$textBox':None,'cmsMmg$textBox':None,'cmsKodMetachnen$textBox':None,'cmsTasrit$textBox':None,'txtMetachnen':None,'__CALLBACKID':'scriptManagerId',
-            '__CALLBACKPARAM':'Mmi.Tashtiot.UI.AjaxComponent.TableView$#$~$#$GetData$#${"P0":"'+data_source+'","P1":'+str(page_num)+',"P2":-1,"P3":["mtysvShemYishuv","Link","Status","tbMahut","Takanon","Tasrit","Nispach","Mmg"],"P4":"~","P5":"~","P6":true,"P7":true}'
+            '__CALLBACKPARAM':'Mmi.Tashtiot.UI.AjaxComponent.TableView$#$~$#$GetData$#${"P0":"'+data_source+'","P1":'+str(page_num)+',"P2":-1,"P3":["mtysvShemYishuv","Link","Status","tbMahut","Takanon","Tasrit","Nispach","Mmg","tbMakom","tbYechidotDiur","mtmrthTirgumMerchav","mtstTargumSugTochnit","svtTargumSugVaadatTichnun"],"P4":"~","P5":"~","P6":true,"P7":true}'
         })
+    
     return r.text
 
 
@@ -75,9 +76,11 @@ def get_gush_json(gush_id):
             'cmsTasrit$textBox':None,
             'txtMetachnen':None,
             '__CALLBACKID':'scriptManagerId',
-            '__CALLBACKPARAM': 'Mmi.Tashtiot.UI.AjaxComponent.TableView$#$~$#$GetData$#${"P0":"'+data_source+'","P1":0,"P2":-1,"P3":["mtysvShemYishuv","Link","Status","tbMahut","Takanon","Tasrit","Nispach","Mmg"],"P4":"~","P5":"~","P6":true,"P7":true}'
+            '__CALLBACKPARAM': 'Mmi.Tashtiot.UI.AjaxComponent.TableView$#$~$#$GetData$#${"P0":"'+data_source+'","P1":0,"P2":-1,"P3":["mtysvShemYishuv","Link","Status","tbMahut","Takanon","Tasrit","Nispach","Mmg","tbMakom","tbYechidotDiur","mtmrthTirgumMerchav","mtstTargumSugTochnit","svtTargumSugVaadatTichnun"],"P4":"~","P5":"~","P6":true,"P7":true}'
             })
-        # print 'POST http://mmi.gov.il/IturTabot2/taba1.aspx', r.text
+            # Note and warning: other available fields for selction are: "tbMerchav","tbMsTochnit","tbMsTochnitYashan","tbTochnitId","tbKodIshuv","tbSug","tbTamlilSaruk","tbMmg","mtmhzShemMachoz","tbTabaSruka","mtsttKvutzatStatusim","tbAchrai","tbMetachnen","tbShemMetachnen","mtkyPianuachYeud","tbYalkut","tbTaarichDigitation","tUniqueID"
+            # DO NOT, however, select the field "tbMatara", as it reduces the amount of results in jerusalem from ~15000 to ~1500 (true for June 18th 2014)
+            # and, if fields are added here they should be added above as well in the get_gush_json_page function
 
         # Send a parameterized request to the server (just search for the gush)
         r = ses.post(
@@ -88,7 +91,6 @@ def get_gush_json(gush_id):
                 'IsOneRow': False,'SourceName': data_source,'bBProjects': False,'conMachoz': 0,'iFromHelka': "-1",'iGush': gush_id,'iMaamadMoncipali': "-1",'iMachoz': "-1",'iNumOfRows': 300,'iToHelka': "-1",'rtncol': 2,'sAchrai': "~",'sFromTaarichStatus': "~",'sKodAchrai': "~",'sKodIshuv': "~",'sKodMetachnen': "~",'sKvutzatStatusim': "~",'sMakom': "~",'sMatara': "~",'sMerchav': "~",'sMetachnen': "~",'sMisTochnit': "~",'sMmg': "~",'sSug': "~",'sTabaSruka': "~",'sTakanon': "~",'sTasrit': "~",'sTik': "~",'sToTaarichStatus': "~",'sVaada': "~",'sYeudRashi': "~"
           })
         )
-        # print 'POST http://mmi.gov.il/IturTabot2/taba1.aspx/getNetuneiTochniotByAllParames', r.text
 
         result = []
         page = 0
@@ -118,69 +120,78 @@ def extract_data(gush_json):
     data = []
     
     for plan in gush_json:
-        rec = {"area": '',
-               "number": '',
-               "details_link": '',
-               "status": '',
-               # "date": '',
-               "day": None, "month": None, "year": None,
-               "essence": '',
-               "takanon_link": [],
-               "tasrit_link": [],
-               "nispahim_link": [],
-               "files_link": [],
-               "govmap_link": []}
-
-        rec["area"] = plan["mtysvShemYishuv"].strip()
+        rec = {'area': '',
+               'number': '',
+               'details_link': '',
+               'status': '',
+               # 'date': '',
+               'day': None, 'month': None, 'year': None,
+               'essence': '',
+               'takanon_link': [],
+               'tasrit_link': [],
+               'nispahim_link': [],
+               'files_link': [],
+               'govmap_link': [],
+               'location_string': '',
+               'housing_units': 0,
+               'region': '',
+               'plan_type': '',
+               'committee_type' : ''}
         
-        bs = BeautifulSoup(plan["Link"], "lxml")
-        rec["details_link"] = bs('a')[0].get('href').replace("javascript:openDetailesPage('", 'http://mmi.gov.il/IturTabot2/').replace("','", '', 1).replace("','", '&tbMsTochnit=').replace("')", '')
-        rec["number"] = bs('a')[0].contents[0]
+        rec['area'] = plan['mtysvShemYishuv'].strip()
+        
+        bs = BeautifulSoup(plan['Link'], 'lxml')
+        rec['details_link'] = bs('a')[0].get('href').replace("javascript:openDetailesPage('", 'http://mmi.gov.il/IturTabot2/').replace("','", '', 1).replace("','", '&tbMsTochnit=').replace("')", '')
+        rec['number'] = bs('a')[0].contents[0]
 
-        rec["status"] = plan["Status"].strip()
+        rec['status'] = plan['Status'].strip()
 
-        matchdate = re.search(date_pattern, rec["status"])
+        matchdate = re.search(date_pattern, rec['status'])
         if matchdate:
             d = matchdate.group(1)
             # rec["date"] = datetime.datetime.strptime(d, "%d/%m/%Y")
             # switched to this instead of datetime - seems to be much faster to query with mongo
-            rec["day"], rec["month"], rec["year"] = [int(i) for i in d.split('/')]
+            rec['day'], rec['month'], rec['year'] = [int(i) for i in d.split('/')]
             # silly hack to get the years to look good, because 06 turns to 6. should look into python date parsers...
             if rec['year'] < 30:
                 rec['year'] = rec['year'] + 2000
             elif rec['year'] < 100:
                 rec['year'] = rec['year'] + 1900
             
-            rec["status"] = rec["status"].replace(d, '').strip()
+            rec['status'] = rec['status'].replace(d, '').strip()
 
-        rec["essence"] = plan["tbMahut"].strip()
+        rec['essence'] = plan['tbMahut'].strip()
 
-        if plan["Takanon"] is not None:
-            bs = BeautifulSoup(plan["Takanon"], "lxml")
-            for i in bs("a"):
-                rec["takanon_link"].append('http://mmi.gov.il' + i.get("href"))
+        if plan['Takanon'] is not None:
+            bs = BeautifulSoup(plan['Takanon'], 'lxml')
+            for i in bs('a'):
+                rec['takanon_link'].append('http://mmi.gov.il' + i.get('href'))
 
-        bs = BeautifulSoup(plan["Tasrit"], "lxml")
-        for i in bs("a"):
-            rec["tasrit_link"].append('http://mmi.gov.il' + i.get("href"))
+        bs = BeautifulSoup(plan['Tasrit'], 'lxml')
+        for i in bs('a'):
+            rec['tasrit_link'].append('http://mmi.gov.il' + i.get('href'))
 
-        bs = BeautifulSoup(plan["Nispach"], "lxml")
-        for i in bs("a"):
-            rec["nispahim_link"].append('http://mmi.gov.il' + i.get("href"))
+        bs = BeautifulSoup(plan['Nispach'], 'lxml')
+        for i in bs('a'):
+            rec['nispahim_link'].append('http://mmi.gov.il' + i.get('href'))
 
-        if plan["Mmg"] is not None:
-            bs = BeautifulSoup(plan["Mmg"], "lxml")
-            for i in bs("a"):
-                url = i.get("href")
-                if url.endswith(".zip"):
-                    rec["files_link"].append(url)
-                elif "PopUpMmg" in url:
-                    rec["govmap_link"].append(url)
+        if plan['Mmg'] is not None:
+            bs = BeautifulSoup(plan['Mmg'], 'lxml')
+            for i in bs('a'):
+                url = i.get('href')
+                if url.endswith('.zip'):
+                    rec['files_link'].append(url)
+                elif 'PopUpMmg' in url:
+                    rec['govmap_link'].append(url)
 
-        data.append(rec)
+        rec['location_string'] = plan['tbMakom'].strip()
+        rec['housing_units'] = plan['tbYechidotDiur']
+        rec['region'] = plan['mtmrthTirgumMerchav']
+        rec['plan_type'] = plan['mtstTargumSugTochnit']
+        rec['committee_type'] = plan['svtTargumSugVaadatTichnun']
         
-
-    # print "DATA:", data
+        data.append(rec)
+    
     return data
 
 

@@ -30,7 +30,7 @@ def teardown():
 def test_scrape_wellformed_json():
     fixture['gush_id'] = '30649'
     data = scrape_gush(fixture, RUN_FOLDER)
-    eq_(len(data), 34)
+    eq_(len(data), 35)
     eq_(data[0]['year'], 2006)
     eq_(len(data[0]['files_link']), 1)
 
