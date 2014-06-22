@@ -58,29 +58,29 @@ def test_api_get_plan():
 
     sample = j[0]
 	
-    eq_(sample.keys(), ['status',
-                        'tasrit_link',
-                        'location_string',
-                        'area',
-                        'housing_units',
-                        'essence',
-                        'files_link',
-                        'nispahim_link',
-                        'number',
-                        'month',
-                        'takanon_link',
-                        'details_link',
-                        'govmap_link',
-                        'year',
-                        'plan_type',
-                        'gush_id',
-                        '_id',
-                        'committee_type',
-                        'region',
-                        'day'])
+    eq_(sample.keys(), [u'status',
+                        u'tasrit_link',
+                        u'location_string',
+                        u'gushim',
+                        u'area',
+                        u'housing_units',
+                        u'essence',
+                        u'files_link',
+                        u'nispahim_link',
+                        u'number',
+                        u'month',
+                        u'takanon_link',
+                        u'govmap_link',
+                        u'year',
+                        u'plan_type',
+                        u'details_link',
+                        u'_id',
+                        u'committee_type',
+                        u'region',
+                        u'day'])
 
     #eq_(sample['status'], u"פרסום בעיתונות להפקדה ")
-    eq_(sample['gush_id'], '30649')
+    assert_true('30649' in sample['gushim'])
     msg = 'taba2.aspx'
     assert_true(msg in sample['details_link'])
     eq_(sample['takanon_link'], [u'http://mmi.gov.il/IturTabotData/takanonim/jerus/1013209.pdf'])

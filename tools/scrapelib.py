@@ -195,7 +195,7 @@ def extract_data(gush_json):
     return data
 
 
-def hash_json(gush_json):
+def hash_gush_json(gush_json):
     """
     Returns MD5 hash of the gush's plans json without the Link field, because it contains 
     a parameter which changes with every request, and it is only the link to the plan's 
@@ -210,13 +210,12 @@ def hash_json(gush_json):
 
 def scrape_gush(gush, RUN_FOLDER=False):
     """
-    Accepts a gush object, scrapes date from gush URL and saves it into the plans collection
+    Accepts a gush object, scrapes data from gush URL and saves it into the plans collection
 
     RUN_FOLDER is for testing
     """
 
     gush_id = gush['gush_id']
-
     log.info("Checking gush #%s", gush_id)
 
     if RUNNING_LOCAL:
@@ -235,27 +234,67 @@ def scrape_gush(gush, RUN_FOLDER=False):
     else:
         gush_json = get_gush_json(gush_id)
 
-    json_hash = hash_json(deepcopy(gush_json))
-
-    # check if the html matches a pre-read html
-    # html_hash = md5.new(html.encode('utf-8')).hexdigest()
-
+    """
+    first check if the gush results have changed. no point in checking each plan's data
+    if the entire plan-set hasn't changed at all
+    """
+    json_hash = hash_gush_json(deepcopy(gush_json))
     if gush["html_hash"] == json_hash:
-        log.debug("Gush data is not modified, returning")
+        log.debug("gush plans' data hasn't changed, returning")
         return True
 
-    log.debug("Gush data is modified, inserting data")
-    data = extract_data(gush_json)
+    plans_data = extract_data(gush_json)
 
-    # Testing
+    # Testing, just return the plans json
     if app.config['TESTING']:
-        return data
+        return plans_data
+    
+    # get all plans that exist for this gush at once for value comparing with the scraped ones
+    gush_existing_plans = db.plans.find({'gushim' : gush_id })
+    
+    for plan in plans_data:
+        # try to find the plan if it already exists
+        existing_plan = None
+        for e in gush_existing_plans:
+            if e['number'] == plan['number']:
+                existing_plan = e
+                break
+        
+        # make sure we can iterate the results cursor again
+        gush_existing_plans.rewind()
+        
+        # if the plan does not exist in the db yet, insert it
+        if not existing_plan:
+            plan['gushim'] = [ gush_id ]
+            log.debug("Inserting new plan data: %s", plan)
+            db.plans.insert(plan)
+        else:
+            # since the plan exists get it's _id and gushim values
+            plan['_id'] = existing_plan['_id']
+            plan['gushim'] = existing_plan['gushim']
+            
+            # the current gush does not exist yet in this plan's gushim list
+            if not gush_id in existing_plan['gushim']:
+                plan['gushim'].append(gush_id)
+                # since we are sending an _id value the document will be updated
+                log.debug("Updating modified plan data: %s", plan)
+                db.plans.save(plan)
+            else:
+                # compare the values. maybe the plan wasn't modified at all
+                plan_copy = deepcopy(plan)
+                existing_plan_copy = deepcopy(existing_plan)
+                del plan_copy['details_link']
+                del existing_plan_copy['details_link']
+                if not plan_copy == existing_plan_copy:
+                    # since we are sending an _id value the document will be updated
+                    log.debug("Updating modified plan data: %s", plan)
+                    db.plans.save(plan)
+            
+                # just make sure these are deleted because we will probably have quite a few iterations here
+                del plan_copy
+                del existing_plan_copy
 
-    for i in data:
-        i['gush_id'] = gush_id
-        log.debug("Inserting plan data: %s", i)
-        db.plans.insert(i)
-
+    # update the gush data
     log.debug("updating gush html_hash, last_checked_at")
     gush["html_hash"] = json_hash
     gush["last_checked_at"] = datetime.datetime.now()

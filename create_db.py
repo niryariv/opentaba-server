@@ -17,6 +17,7 @@ if not options.force:
 # print "Deleting db.gushim and db.plans"
 db.gushim.drop()
 db.plans.drop()
+# delete blacklist in case it still exists. we don't use it anymore
 db.blacklist.drop()
 
 db.gushim.create_index([('gush_id', 1)], unique=True)
@@ -26,7 +27,7 @@ for g in GUSHIM:
                       'html_hash': '',
                       'last_checked_at': ''})
 
-db.plans.create_index([('gush_id', pymongo.ASCENDING),
+db.plans.create_index([('gushim', pymongo.ASCENDING),
                        ('year', pymongo.DESCENDING),
                        ('month', pymongo.DESCENDING),
                        ('day', pymongo.DESCENDING),
@@ -34,4 +35,3 @@ db.plans.create_index([('gush_id', pymongo.ASCENDING),
                        ('essence', pymongo.ASCENDING)],
                       unique=True)  # , drop_dups = True)
 
-db.blacklist.insert({'blacklist': []})

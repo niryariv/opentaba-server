@@ -104,7 +104,8 @@ def get_gushim():
                                       "plan_stats": {}}) for g in gushim)
         # Get plan statistics from DB
         stats = db.plans.aggregate([
-            {"$project": {"gush_id": "$gush_id", "status": "$status", "_id": 0}},
+            {"$unwind" : "$gushim" },
+            {"$project": {"gush_id": "$gushim", "status": "$status", "_id": 0}},
             {"$group": {"_id": {"gush_id": "$gush_id", "status": "$status"}, "count": {"$sum": 1}}}
         ])
 
@@ -144,15 +145,10 @@ def get_plans(gush_id):
     if db.gushim.find_one({"gush_id": gush_id}) is None:
         abort(404)
 
-    plans = db.plans.find({"gush_id": gush_id}).sort(
+    plans = db.plans.find({"gushim": gush_id}).sort(
         [("year", pymongo.DESCENDING), ("month", pymongo.DESCENDING), ("day", pymongo.DESCENDING)])
 
-    # eliminate plans which appear in >99 blocks - cover for MMI's database bugs
-    blacklist = db.blacklist.find_one()['blacklist']
-
-    plans_clean = [p for p in list(plans) if p['number'] not in blacklist]
-
-    return _resp(plans_clean)
+    return _resp(list(plans))
 
 
 @app.route('/plans.atom')
