@@ -27,13 +27,11 @@ Locally:
     redis-server
     python scrape.py -g [all | <gush_id>]
     python worker.py
-    python clean_db.py
 
 On Heroku:
 
     heroku run python scrape.py -g [all | <gush_id>]
     heroku run worker
-    heroku run python clean_db.py
     
 ##TESTING
 
