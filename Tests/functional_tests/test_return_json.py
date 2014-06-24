@@ -42,7 +42,7 @@ def test_api_get_gush():
     j = json.loads(response.data)
     eq_(response.status_code, 200)
     eq_(response.mimetype, 'application/json')
-    eq_(j.keys(), ['_id', 'gush_id', 'last_checked_at', 'html_hash'])
+    eq_(j.keys(), ['json_hash', '_id', 'gush_id', 'last_checked_at'])
     eq_(j['gush_id'], '30649')
 
 

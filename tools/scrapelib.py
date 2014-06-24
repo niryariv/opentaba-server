@@ -239,7 +239,7 @@ def scrape_gush(gush, RUN_FOLDER=False):
     if the entire plan-set hasn't changed at all
     """
     json_hash = hash_gush_json(deepcopy(gush_json))
-    if gush["html_hash"] == json_hash:
+    if gush["json_hash"] == json_hash:
         log.debug("gush plans' data hasn't changed, returning")
         return True
 
@@ -295,7 +295,7 @@ def scrape_gush(gush, RUN_FOLDER=False):
                 del existing_plan_copy
 
     # update the gush data
-    log.debug("updating gush html_hash, last_checked_at")
-    gush["html_hash"] = json_hash
+    log.debug("updating gush json_hash, last_checked_at")
+    gush["json_hash"] = json_hash
     gush["last_checked_at"] = datetime.datetime.now()
     db.gushim.save(gush)

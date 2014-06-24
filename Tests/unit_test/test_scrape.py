@@ -14,7 +14,7 @@ RUN_FOLDER = None
 
 def setup():
     global fixture, RUNNING_LOCAL, RUN_FOLDER
-    fixture = {'html_hash': 'aaaa'} # mocking tha hash
+    fixture = {'json_hash': 'aaaa'} # mocking tha hash
     RUN_FOLDER = os.path.dirname(os.path.realpath(__file__))
     app.config['TESTING'] = True
     RUNNING_LOCAL = True

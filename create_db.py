@@ -24,7 +24,7 @@ db.gushim.create_index([('gush_id', 1)], unique=True)
 
 for g in GUSHIM:
     db.gushim.insert({'gush_id': g,
-                      'html_hash': '',
+                      'json_hash': '',
                       'last_checked_at': ''})
 
 db.plans.create_index([('gushim', pymongo.ASCENDING),

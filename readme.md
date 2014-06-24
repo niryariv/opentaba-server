@@ -52,7 +52,7 @@ Get block (gush) data:
 
     GET /gush/30035.json
 
-    {"_id": {"$oid": "50ec3aa7e16ddfd10b275d01"}, "gush_id": "30035", "last_checked_at": {"$date": 1358175962596}, "html_hash": "041363772c628becdd339a16d5f7cf2a"}
+    {"_id": {"$oid": "50ec3aa7e16ddfd10b275d01"}, "gush_id": "30035", "last_checked_at": {"$date": 1358175962596}, "json_hash": "041363772c628becdd339a16d5f7cf2a"}
 
 Get plans for a block:
 
