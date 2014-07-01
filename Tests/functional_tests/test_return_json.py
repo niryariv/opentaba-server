@@ -60,7 +60,7 @@ def test_api_get_plan():
 	
     eq_(sample.keys(), [u'status',
                         u'tasrit_link',
-                        u'location_string',
+                        u'plan_id',
                         u'gushim',
                         u'area',
                         u'housing_units',
@@ -77,7 +77,8 @@ def test_api_get_plan():
                         u'_id',
                         u'committee_type',
                         u'region',
-                        u'day'])
+                        u'day',
+                        u'location_string'])
 
     #eq_(sample['status'], u"פרסום בעיתונות להפקדה ")
     assert_true('30649' in sample['gushim'])

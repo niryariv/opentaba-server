@@ -27,6 +27,7 @@ for g in GUSHIM:
                       'json_hash': '',
                       'last_checked_at': ''})
 
+db.plans.create_index([('plan_id', pymongo.DESCENDING)], unique=True)
 db.plans.create_index([('gushim', pymongo.ASCENDING),
                        ('year', pymongo.DESCENDING),
                        ('month', pymongo.DESCENDING),

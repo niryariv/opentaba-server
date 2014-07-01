@@ -20,7 +20,7 @@ def get_gush_json_page(requests_session, page_num, cookie, view_state, data_sour
         'http://mmi.gov.il/IturTabot2/taba1.aspx', 
         cookies=cookie, 
         data={'scriptManagerId_HiddenField':None,'__EVENTTARGET':None,'__EVENTARGUMENT':None,'__VIEWSTATE':view_state,'cpe_ClientState':None,'txtMsTochnit':None,'cmsStatusim$textBox':None,'txtGush':None,'txtwinCal1$textBox':None,'txtwinCal1$popupWin$time':None,'txtwinCal1$popupWin$mskTime_ClientState':None,'txtFromHelka':None,'txtwinCal2$textBox':None,'txtwinCal2$popupWin$time':None,'txtwinCal2$popupWin$mskTime_ClientState':None,'txtMakom':None,'cmsMerchaveiTichnun$textBox':None,'cmsYeudRashi$textBox':None,'txtMatara':None,'cmsYeshuvim$textBox':None,'cmsKodAchrai$textBox':None,'cmsTakanon$textBox':None,'txtAchrai':None,'cmsSug$textBox':None,'cmsMmg$textBox':None,'cmsKodMetachnen$textBox':None,'cmsTasrit$textBox':None,'txtMetachnen':None,'__CALLBACKID':'scriptManagerId',
-            '__CALLBACKPARAM':'Mmi.Tashtiot.UI.AjaxComponent.TableView$#$~$#$GetData$#${"P0":"'+data_source+'","P1":'+str(page_num)+',"P2":-1,"P3":["mtysvShemYishuv","Link","Status","tbMahut","Takanon","Tasrit","Nispach","Mmg","tbMakom","tbYechidotDiur","mtmrthTirgumMerchav","mtstTargumSugTochnit","svtTargumSugVaadatTichnun"],"P4":"~","P5":"~","P6":true,"P7":true}'
+            '__CALLBACKPARAM':'Mmi.Tashtiot.UI.AjaxComponent.TableView$#$~$#$GetData$#${"P0":"'+data_source+'","P1":'+str(page_num)+',"P2":-1,"P3":["mtysvShemYishuv","Link","Status","tbMahut","Takanon","Tasrit","Nispach","Mmg","tbMakom","tbYechidotDiur","mtmrthTirgumMerchav","mtstTargumSugTochnit","svtTargumSugVaadatTichnun","tbTochnitId"],"P4":"~","P5":"~","P6":true,"P7":true}'
         })
     
     return r.text
@@ -76,9 +76,9 @@ def get_gush_json(gush_id):
             'cmsTasrit$textBox':None,
             'txtMetachnen':None,
             '__CALLBACKID':'scriptManagerId',
-            '__CALLBACKPARAM': 'Mmi.Tashtiot.UI.AjaxComponent.TableView$#$~$#$GetData$#${"P0":"'+data_source+'","P1":0,"P2":-1,"P3":["mtysvShemYishuv","Link","Status","tbMahut","Takanon","Tasrit","Nispach","Mmg","tbMakom","tbYechidotDiur","mtmrthTirgumMerchav","mtstTargumSugTochnit","svtTargumSugVaadatTichnun"],"P4":"~","P5":"~","P6":true,"P7":true}'
+            '__CALLBACKPARAM': 'Mmi.Tashtiot.UI.AjaxComponent.TableView$#$~$#$GetData$#${"P0":"'+data_source+'","P1":0,"P2":-1,"P3":["mtysvShemYishuv","Link","Status","tbMahut","Takanon","Tasrit","Nispach","Mmg","tbMakom","tbYechidotDiur","mtmrthTirgumMerchav","mtstTargumSugTochnit","svtTargumSugVaadatTichnun","tbTochnitId"],"P4":"~","P5":"~","P6":true,"P7":true}'
             })
-            # Note and warning: other available fields for selction are: "tbMerchav","tbMsTochnit","tbMsTochnitYashan","tbTochnitId","tbKodIshuv","tbSug","tbTamlilSaruk","tbMmg","mtmhzShemMachoz","tbTabaSruka","mtsttKvutzatStatusim","tbAchrai","tbMetachnen","tbShemMetachnen","mtkyPianuachYeud","tbYalkut","tbTaarichDigitation","tUniqueID"
+            # Note and warning: other available fields for selction are: "tbMerchav","tbMsTochnit","tbMsTochnitYashan","tbKodIshuv","tbSug","tbTamlilSaruk","tbMmg","mtmhzShemMachoz","tbTabaSruka","mtsttKvutzatStatusim","tbAchrai","tbMetachnen","tbShemMetachnen","mtkyPianuachYeud","tbYalkut","tbTaarichDigitation","tUniqueID"
             # DO NOT, however, select the field "tbMatara", as it reduces the amount of results in jerusalem from ~15000 to ~1500 (true for June 18th 2014)
             # and, if fields are added here they should be added above as well in the get_gush_json_page function
 
@@ -120,7 +120,8 @@ def extract_data(gush_json):
     data = []
     
     for plan in gush_json:
-        rec = {'area': '',
+        rec = {'plan_id': 0,
+               'area': '',
                'number': '',
                'details_link': '',
                'status': '',
@@ -138,6 +139,7 @@ def extract_data(gush_json):
                'plan_type': '',
                'committee_type' : ''}
         
+        rec['plan_id'] = plan['tbTochnitId']
         rec['area'] = plan['mtysvShemYishuv'].strip()
         
         bs = BeautifulSoup(plan['Link'], 'lxml')
@@ -249,22 +251,22 @@ def scrape_gush(gush, RUN_FOLDER=False):
     if app.config['TESTING']:
         return plans_data
     
-    # get all plans that exist for this gush at once for value comparing with the scraped ones
-    gush_existing_plans = db.plans.find({'gushim' : gush_id })
+    # select all existing plans in one db transaction
+    plan_ids = []
+    for plan in plans_data:
+        plan_ids.append(plan['plan_id'])
+    existing_plans = list(db.plans.find({'plan_id' : { '$in' : plan_ids } }))
     
     for plan in plans_data:
         # try to find the plan if it already exists
         existing_plan = None
-        for e in gush_existing_plans:
-            if e['number'] == plan['number']:
+        for e in existing_plans:
+            if e['plan_id'] == plan['plan_id']:
                 existing_plan = e
                 break
-        
-        # make sure we can iterate the results cursor again
-        gush_existing_plans.rewind()
-        
-        # if the plan does not exist in the db yet, insert it
-        if not existing_plan:
+		
+        if existing_plan is None:
+            # the plan is new, just insert it to the db
             plan['gushim'] = [ gush_id ]
             log.debug("Inserting new plan data: %s", plan)
             db.plans.insert(plan)
@@ -273,8 +275,8 @@ def scrape_gush(gush, RUN_FOLDER=False):
             plan['_id'] = existing_plan['_id']
             plan['gushim'] = existing_plan['gushim']
             
-            # the current gush does not exist yet in this plan's gushim list
             if not gush_id in existing_plan['gushim']:
+                # the current gush does not exist yet in this plan's gushim list
                 plan['gushim'].append(gush_id)
                 # since we are sending an _id value the document will be updated
                 log.debug("Updating modified plan data: %s", plan)
@@ -293,7 +295,7 @@ def scrape_gush(gush, RUN_FOLDER=False):
                 # just make sure these are deleted because we will probably have quite a few iterations here
                 del plan_copy
                 del existing_plan_copy
-
+    
     # update the gush data
     log.debug("updating gush json_hash, last_checked_at")
     gush["json_hash"] = json_hash
