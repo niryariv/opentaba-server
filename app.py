@@ -69,10 +69,10 @@ def _plans_query_to_atom_feed(request, query={}, limit=0, feed_title=''):
 
     for p in plans:
         url = p['details_link']
-        content = p['status'] + p['number']
+        content = p['location_string'] + '<br>' + p['status'] + '<br>' + p['number']
         title = p['essence']
         if not title:
-            title = content
+            title = p['number']
 
         feed.add(
             title=title,
