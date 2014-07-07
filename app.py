@@ -69,8 +69,9 @@ def _plans_query_to_atom_feed(request, query={}, limit=0, feed_title=''):
 
     for p in plans:
         url = p['details_link']
-        content = p['location_string'] + '<br>' + p['status'] + ': ' + '%02d/%02d/%04d' % (p['day'], p['month'], p['year']) + '<br>' + p['number']
-        title = p['essence']
+        content = p['essence'] + ' [' + p['status'] + ', ' + '%02d/%02d/%04d' % (p['day'], p['month'], p['year']) + ', ' + p['number'] + ']'
+        title = p['location_string']
+        # 'not title' is not supposed to happen anymore because every plan currently has a location
         if not title:
             title = p['number']
 
