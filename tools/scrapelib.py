@@ -243,6 +243,12 @@ def scrape_gush(gush, RUN_FOLDER=False):
     json_hash = hash_gush_json(deepcopy(gush_json))
     if gush["json_hash"] == json_hash:
         log.debug("gush plans' data hasn't changed, returning")
+        """
+        need to update last_checked_at even if the plan data hasn't changed, so the gush's 
+        scraping priority on the next scrape would be less than earlier-checked gushim
+        """
+        gush["last_checked_at"] = datetime.datetime.now()
+        db.gushim.save(gush)
         return True
 
     plans_data = extract_data(gush_json)

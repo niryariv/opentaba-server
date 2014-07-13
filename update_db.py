@@ -1,0 +1,33 @@
+#!/usr/bin/env python2
+
+from app import *
+from tools.gushim import GUSHIM
+from optparse import OptionParser
+
+parser = OptionParser()
+parser.add_option("--force", dest="force", default=False, action="store_true", help="update gushim in db")
+
+(options, args) = parser.parse_args()
+
+if not options.force:
+    print ("This script will update the gushim collection in the actual db. "
+           "To make sure this isn't running by mistake, run this with --force")
+    exit()
+
+gushim_collection = db.gushim.find()
+existing_gushim = []
+
+for g in gushim_collection:
+    existing_gushim.append(g['gush_id'])
+
+total_gushim = len(existing_gushim)
+
+for g in GUSHIM:
+    if g not in existing_gushim:
+        print 'Inserting new gush id: ', g
+        db.gushim.insert({'gush_id': g,
+                          'json_hash': '',
+                          'last_checked_at': ''})
+        total_gushim += 1
+
+print 'There are now ', str(total_gushim), ' gushim. test_return_json.py should be updated to pass'
