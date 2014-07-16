@@ -9,7 +9,6 @@ from rq import Queue
 from app import *
 from worker import conn
 from tools.scrapelib import scrape_gush
-import traceback
 
 
 def scrape(gush_id, no_queue=False):
