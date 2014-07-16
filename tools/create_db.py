@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
-from app import *
-from tools.gushim import GUSHIM
+from conn import *
+from gushim import GUSHIM
 from optparse import OptionParser
 
 parser = OptionParser()

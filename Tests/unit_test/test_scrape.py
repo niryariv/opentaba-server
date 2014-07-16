@@ -29,7 +29,7 @@ def teardown():
 @with_setup(setup, teardown)
 def test_scrape_wellformed_json():
     fixture['gush_id'] = '30649'
-    data = scrape_gush(fixture, RUN_FOLDER)
+    data = scrape_gush(fixture, RUN_FOLDER, True)
     eq_(len(data), 35)
     eq_(data[0]['year'], 2006)
     eq_(len(data[0]['files_link']), 1)
@@ -41,7 +41,7 @@ def test_scrape_wellformed_json():
 def test_scrape_empty_result():
     #when quote mark appears in the middle of a string
     fixture['gush_id'] = 'empty'
-    data = scrape_gush(fixture, RUN_FOLDER)
+    data = scrape_gush(fixture, RUN_FOLDER, True)
     eq_(len(data), 0)
     
 """   

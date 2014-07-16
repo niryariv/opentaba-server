@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 
-from app import *
-from tools.gushim import GUSHIM
+from conn import *
+from gushim import GUSHIM
 from optparse import OptionParser
 
 parser = OptionParser()
@@ -30,4 +30,4 @@ for g in GUSHIM:
                           'last_checked_at': ''})
         total_gushim += 1
 
-print 'There are now ', str(total_gushim), ' gushim. test_return_json.py should be updated to pass'
+print 'There are currently %s gushim. test_return_json.py should be updated to pass' % str(total_gushim)

@@ -6,9 +6,10 @@ import sys
 import logging
 from optparse import OptionParser, SUPPRESS_HELP
 from rq import Queue
-from app import *
-from worker import conn
+from app import app
+from tools.conn import *
 from tools.scrapelib import scrape_gush
+from worker import redis_conn
 
 
 def scrape(gush_id, no_queue=False):
@@ -36,13 +37,13 @@ def scrape(gush_id, no_queue=False):
         log.warn("redis queuing is disabled, this is not recommended")
         for g in gushim:
             log.info("Scraping gush %s", g['gush_id'])
-            scrape_gush(g)
+            scrape_gush(g, False, app.config['TESTING'])
     else:
         # enqueue them
-        q = Queue(connection=conn)
+        q = Queue(connection=redis_conn)
         for g in gushim:
             log.info("Queuing gush %s for scraping", g['gush_id'])
-            q.enqueue(scrape_gush, g)
+            q.enqueue(scrape_gush, g, False, app.config['TESTING'])
 
 
 if __name__ == '__main__':
