@@ -30,4 +30,4 @@ for g in GUSHIM:
                           'last_checked_at': ''})
         total_gushim += 1
 
-print 'There are currently %s gushim. test_return_json.py should be updated to pass' % str(total_gushim)
+print 'There are currently %s gushim' % str(total_gushim)
