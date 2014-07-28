@@ -69,7 +69,15 @@ def _plans_query_to_atom_feed(request, query={}, limit=0, feed_title=''):
 
     for p in plans:
         url = p['details_link']
-        content = p['essence'] + ' [' + p['status'] + ', ' + '%02d/%02d/%04d' % (p['day'], p['month'], p['year']) + ', ' + p['number'] + ']'
+        
+        # special emphasizing for some statuses
+        if p['status'] in [u'פרסום ההפקדה', u'פרסום בעיתונות להפקדה']:
+            status = u'<em>%s</em>' % p['status']
+        else:
+            status = p['status']
+        
+        content = p['essence'] + ' [' + status + ', ' + '%02d/%02d/%04d' % (p['day'], p['month'], p['year']) + \
+            ', ' + p['number'] + '] (<a href=http://www.mavat.moin.gov.il/MavatPS/Forms/SV3.aspx?tid=4&tnumb=' + p['number'] + u'>מבא"ת</a>)'
         title = p['location_string']
         # 'not title' is not supposed to happen anymore because every plan currently has a location
         if not title:
