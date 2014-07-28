@@ -23,7 +23,7 @@ for g in gushim_collection:
 total_gushim = len(existing_gushim)
 
 for city in GUSHIM.keys():
-    for g in GUSHIM[city]['list']
+    for g in GUSHIM[city]['list']:
         if g not in existing_gushim:
             print 'Inserting new gush id: ', g
             db.gushim.insert({'gush_id': g,
