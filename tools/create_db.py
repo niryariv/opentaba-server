@@ -22,10 +22,20 @@ db.blacklist.drop()
 
 db.gushim.create_index([('gush_id', 1)], unique=True)
 
-for g in GUSHIM:
-    db.gushim.insert({'gush_id': g,
-                      'json_hash': '',
-                      'last_checked_at': ''})
+"""
+exisiting_gushim protects against gush numbers that can be part of more than one municipality. this is 
+fine in the gushim.py file as it is used to filter the per-city atom feeds, but in our db we only want 
+one instance of each gush number
+"""
+existing_gushim = []
+
+for city in GUSHIM.keys():
+    for g in GUSHIM[city]['list']:
+        if g not in existing_gushim:
+            db.gushim.insert({'gush_id': g,
+                              'json_hash': '',
+                              'last_checked_at': ''})
+            existing_gushim.append(g)
 
 db.plans.create_index([('plan_id', pymongo.DESCENDING)], unique=True)
 db.plans.create_index([('gushim', pymongo.ASCENDING),

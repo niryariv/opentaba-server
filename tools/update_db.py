@@ -22,12 +22,14 @@ for g in gushim_collection:
 
 total_gushim = len(existing_gushim)
 
-for g in GUSHIM:
-    if g not in existing_gushim:
-        print 'Inserting new gush id: ', g
-        db.gushim.insert({'gush_id': g,
-                          'json_hash': '',
-                          'last_checked_at': ''})
-        total_gushim += 1
+for city in GUSHIM.keys():
+    for g in GUSHIM[city]['list']
+        if g not in existing_gushim:
+            print 'Inserting new gush id: ', g
+            db.gushim.insert({'gush_id': g,
+                              'json_hash': '',
+                              'last_checked_at': ''})
+            total_gushim += 1
+            existing_gushim.append(g)
 
 print 'There are currently %s gushim' % str(total_gushim)

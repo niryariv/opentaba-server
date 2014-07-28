@@ -14,6 +14,7 @@ from flask import Flask
 from flask import abort, redirect, url_for, make_response, request
 
 from tools.conn import *
+from tools.gushim import GUSHIM
 
 app = Flask(__name__)
 app.debug = RUNNING_LOCAL # if we're local, keep debug on
@@ -139,7 +140,19 @@ def get_plans(gush_id):
 
 @app.route('/plans.atom')
 def atom_feed():
-    return _plans_query_to_atom_feed(request, limit=20, feed_title=u'תב״ע פתוחה - ירושלים').get_response()
+    return _plans_query_to_atom_feed(request, limit=20, feed_title=u'תב״ע פתוחה').get_response()
+
+
+@app.route('/<city>/plans.atom')
+def atom_feed_city(city):
+    if city not in GUSHIM.keys():
+        abort(404)
+    
+    if len(GUSHIM[city]['list']) > 1:
+        query = {'gushim': {'$in': GUSHIM[city]['list']}}
+    else:
+        query = {'gushim': GUSHIM[city]['list'][0]}
+    return _plans_query_to_atom_feed(request, query, limit=20, feed_title=u'תב״ע פתוחה - ' + GUSHIM[city]['display'].decode('unicode-escape')).get_response()
 
 
 @app.route('/gush/<gushim>/plans.atom')
@@ -150,10 +163,10 @@ def atom_feed_gush(gushim):
     """
     gushim = gushim.split(',')
     if len(gushim) > 1:
-        query = {"gush_id": {"$in": gushim}}
+        query = {'gushim': {'$in': gushim}}
     else:
-        query = {"gush_id": gushim[0]}
-    return _plans_query_to_atom_feed(request, query, feed_title=u'תב״ע פתוחה - ירושלים - גוש %s' % ', '.join(gushim)).get_response()
+        query = {'gushim': gushim[0]}
+    return _plans_query_to_atom_feed(request, query, feed_title=u'תב״ע פתוחה - גוש %s' % ', '.join(gushim)).get_response()
 
 
 # TODO add some text on the project

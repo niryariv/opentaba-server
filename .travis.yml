@@ -19,6 +19,7 @@ before_script:
   - mkdir filecache
   - chmod -R 0777 filecache 
   - python scrape.py -g 30649
+  - python scrape.py -g 28107
   - python worker.py
 
     
