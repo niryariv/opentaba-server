@@ -8,12 +8,16 @@ import pymongo
 from pymongo.errors import ConnectionFailure
 from bson import json_util
 from urlparse import urlparse
+from functools import wraps
+import email.utils
+from time import time
 
 from werkzeug.contrib.atom import AtomFeed
+from werkzeug.contrib.cache import FileSystemCache, NullCache
 from werkzeug.urls import url_encode
 
 from flask import Flask
-from flask import abort, redirect, url_for, make_response, request
+from flask import abort, make_response, request
 
 app = Flask(__name__)
 
@@ -33,7 +37,57 @@ else:  # work locally
     RUNNING_LOCAL = True
     app.debug = True  # since we're local, keep debug on
 
+# Cache settings
+cache_lifetime = 3600
+if os.environ.get('DISABLE_CACHE', None) is None:
+    cache = FileSystemCache(cache_dir='cache')
+else:
+    cache = None
+
 #### Helpers ####
+
+
+def cached(timeout=cache_lifetime, cache_key=None, set_expires=True):
+    """
+    Caching decorator for Flask routes
+
+    Provides both caching and setting of relevant "Expires" header if appropriate.
+    Adapted from http://flask.pocoo.org/docs/patterns/viewdecorators/
+    """
+    def decorator(f):
+        if cache is None:
+            return f
+
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+
+            if cache_key is None:
+                ck = 'view:%s?%s' % (request.path, request.query_string)
+            else:
+                ck = cache_key
+            ek = "%s.expires" % ck
+            expires = None
+            cached = cache.get_many(ck, ek)
+            if cached[0] is not None:
+                response = cached[0]
+                app.logger.debug("Cache hit for %s, returning cached content, expires=%d", ck, cached[1])
+                if cached[1] is not None and set_expires:
+                    expires = cached[1]
+            else:
+                response = f(*args, **kwargs)
+                expires = int(time() + timeout)
+                cache.set_many({ck: response,
+                                ek: expires}, timeout=timeout)
+                app.logger.debug("Cache miss for %s, refreshed content and saved in cache, expires=%d", ck, expires)
+
+            if set_expires and expires is not None:
+                response.headers['Expires'] = email.utils.formatdate(expires)
+
+            return response
+
+        return decorated_function
+
+    return decorator
 
 
 def _to_json(mongo_obj):
@@ -103,6 +157,7 @@ def _plans_query_to_atom_feed(request, query={}, limit=0, feed_title=''):
 #### ROUTES ####
 
 @app.route('/gushim.json')
+@cached(timeout=3600)
 def get_gushim():
     """
     get gush_id metadata
