@@ -72,16 +72,18 @@ def _plans_query_to_atom_feed(request, query={}, limit=0, feed_title=''):
         
         # special emphasizing for some statuses
         if p['status'] in [u'פרסום ההפקדה', u'פרסום בעיתונות להפקדה']:
-            status = u'<em>%s</em>' % p['status']
+            status = u'**%s**' % p['status']
         else:
             status = p['status']
         
         content = p['essence'] + ' [' + status + ', ' + '%02d/%02d/%04d' % (p['day'], p['month'], p['year']) + \
-            ', ' + p['number'] + '] (<a href=http://www.mavat.moin.gov.il/MavatPS/Forms/SV3.aspx?tid=4&tnumb=' + p['number'] + u'>מבא"ת</a>)'
+            ', ' + p['number'] + '] (http://www.mavat.moin.gov.il/MavatPS/Forms/SV3.aspx?tid=4&tnumb=' + p['number'] + ')'
         title = p['location_string']
         # 'not title' is not supposed to happen anymore because every plan currently has a location
         if not title:
             title = p['number']
+        
+        links = [{'href' : 'http://www.mavat.moin.gov.il/MavatPS/Forms/SV3.aspx?tid=4&tnumb=' + p['number'], 'rel': 'related', 'title': u'מבא"ת'}]
 
         feed.add(
             title=title,
@@ -91,6 +93,7 @@ def _plans_query_to_atom_feed(request, query={}, limit=0, feed_title=''):
             id=url + '&status=' + p['status'],
             # this is a unique ID (not real URL) so adding status to ensure uniqueness in TBA stages
             url=url,
+            links=links,
             updated=datetime.date(p['year'], p['month'], p['day'])
         )
 
