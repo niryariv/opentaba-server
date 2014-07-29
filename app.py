@@ -13,7 +13,7 @@ import email.utils
 from time import time
 
 from werkzeug.contrib.atom import AtomFeed
-from werkzeug.contrib.cache import FileSystemCache, NullCache
+from werkzeug.contrib.cache import MemcachedCache, NullCache
 from werkzeug.urls import url_encode
 
 from flask import Flask
@@ -37,17 +37,11 @@ else:  # work locally
     RUNNING_LOCAL = True
     app.debug = True  # since we're local, keep debug on
 
-# Cache settings
-cache_lifetime = 3600
-if os.environ.get('DISABLE_CACHE', None) is None:
-    cache = FileSystemCache(cache_dir='cache')
-else:
-    cache = None
 
 #### Helpers ####
 
 
-def cached(timeout=cache_lifetime, cache_key=None, set_expires=True):
+def cached(timeout=3600, cache_key=None, set_expires=True):
     """
     Caching decorator for Flask routes
 
@@ -55,30 +49,25 @@ def cached(timeout=cache_lifetime, cache_key=None, set_expires=True):
     Adapted from http://flask.pocoo.org/docs/patterns/viewdecorators/
     """
     def decorator(f):
-        if cache is None:
-            return f
-
         @wraps(f)
         def decorated_function(*args, **kwargs):
-
             if cache_key is None:
                 ck = 'view:%s?%s' % (request.path, request.query_string)
             else:
                 ck = cache_key
-            ek = "%s.expires" % ck
+            ek = '%s.expires' % ck
             expires = None
-            cached = cache.get_many(ck, ek)
+            cached = app.cache.get_many(ck, ek)
             if cached[0] is not None:
                 response = cached[0]
-                app.logger.debug("Cache hit for %s, returning cached content, expires=%d", ck, cached[1])
+                app.logger.debug('Cache hit for %s, returning cached content, expires=%d', ck, cached[1])
                 if cached[1] is not None and set_expires:
                     expires = cached[1]
             else:
                 response = f(*args, **kwargs)
                 expires = int(time() + timeout)
-                cache.set_many({ck: response,
-                                ek: expires}, timeout=timeout)
-                app.logger.debug("Cache miss for %s, refreshed content and saved in cache, expires=%d", ck, expires)
+                app.cache.set_many({ck: response, ek: expires}, timeout=timeout)
+                app.logger.debug('Cache miss for %s, refreshed content and saved in cache, expires=%d', ck, expires)
 
             if set_expires and expires is not None:
                 response.headers['Expires'] = email.utils.formatdate(expires)
@@ -88,6 +77,25 @@ def cached(timeout=cache_lifetime, cache_key=None, set_expires=True):
         return decorated_function
 
     return decorator
+
+
+@app.before_first_request
+def _setup_cache():
+    """
+    We only initialize the cache here because __main__ is not run when we launch within a WSGI container.
+    If a test is being run or we don't want cache, NullCache will be initialized just as a dummy.
+    If running locally without the 'DISABLE_CACHE' env variable and without a memcached instance running,
+    MemcachedCache and it's underlying python-memcached will give no warning, and simply behave like a
+    NullCache. Some monitoring should be done for the degug cache hit/miss messages.
+    """
+    # Setup cache
+    if app.config['TESTING'] or os.environ.get('DISABLE_CACHE', None) is not None:
+        app.cache = NullCache()
+        app.logger.debug('Cache initialized as NullCache')
+    else:
+        MEMCACHED_SERVERS = os.environ.get('MEMCACHEDCLOUD_SERVERS', '127.0.0.1:11211')
+        app.cache = MemcachedCache(servers=MEMCACHED_SERVERS.split(';'))
+        app.logger.debug("Cache initialized as MemcachedCache with servers: %s", MEMCACHED_SERVERS)
 
 
 def _to_json(mongo_obj):
@@ -194,6 +202,7 @@ def get_gushim():
 
 
 @app.route('/gush/<gush_id>.json')
+@cached(timeout=3600)
 def get_gush(gush_id):
     """
     get gush_id metadata
@@ -205,6 +214,7 @@ def get_gush(gush_id):
 
 
 @app.route('/gush/<gush_id>/plans.json')
+@cached(timeout=3600)
 def get_plans(gush_id):
     """
     get plans from gush_id
@@ -219,11 +229,13 @@ def get_plans(gush_id):
 
 
 @app.route('/plans.atom')
+@cached(timeout=3600)
 def atom_feed():
     return _plans_query_to_atom_feed(request, limit=20, feed_title=u'תב״ע פתוחה - ירושלים').get_response()
 
 
 @app.route('/gush/<gushim>/plans.atom')
+@cached(timeout=3600)
 def atom_feed_gush(gushim):
     """
     Create a feed for one or more gush IDs.
@@ -261,6 +273,3 @@ if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000.
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
-
-
-

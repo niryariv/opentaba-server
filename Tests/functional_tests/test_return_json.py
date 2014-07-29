@@ -7,18 +7,19 @@ from nose.tools import eq_, assert_true
 from nose import with_setup
 import json
 
+
+# get the test client for communicating with our flask app
 testapp = app.test_client()
 
 
-def setup():
+def setup_module(module):
     app.config['TESTING'] = True
 
 
-def teardown():
+def teardown_module(module):
     app.config['TESTING'] = False
 
 
-@with_setup(setup, teardown)
 def test_root_working():
     response = testapp.get('/')
     eq_(response.status_code, 200)
@@ -26,7 +27,6 @@ def test_root_working():
     assert_true(msg in response.data)
 
 
-@with_setup(setup, teardown)
 def test_api_gushim():
     response = testapp.get('/gushim.json')
     print(dir(response))
@@ -36,17 +36,15 @@ def test_api_gushim():
     eq_(response.mimetype, 'application/json')
 
 
-@with_setup(setup, teardown)
 def test_api_get_gush():
     response = testapp.get('/gush/30649.json')
     j = json.loads(response.data)
     eq_(response.status_code, 200)
     eq_(response.mimetype, 'application/json')
-    eq_(j.keys(), ['json_hash', '_id', 'gush_id', 'last_checked_at'])
+    eq_(sorted(j.keys()), ['_id', 'gush_id', 'json_hash', 'last_checked_at'])
     eq_(j['gush_id'], '30649')
 
 
-@with_setup(setup, teardown)
 def test_api_get_plan():
     response = testapp.get('/gush/30649/plans.json')
     j = json.loads(response.data)
@@ -58,27 +56,27 @@ def test_api_get_plan():
 
     sample = j[0]
 	
-    eq_(sample.keys(), [u'status',
-                        u'tasrit_link',
-                        u'plan_id',
-                        u'gushim',
-                        u'area',
-                        u'housing_units',
-                        u'essence',
-                        u'files_link',
-                        u'nispahim_link',
-                        u'number',
-                        u'month',
-                        u'takanon_link',
-                        u'govmap_link',
-                        u'year',
-                        u'plan_type',
-                        u'details_link',
-                        u'_id',
-                        u'committee_type',
-                        u'region',
-                        u'day',
-                        u'location_string'])
+    eq_(sorted(sample.keys()), [u'_id',
+                                u'area',
+                                u'committee_type',
+                                u'day',
+                                u'details_link',
+                                u'essence',
+                                u'files_link',
+                                u'govmap_link',
+                                u'gushim',
+                                u'housing_units',
+                                u'location_string',
+                                u'month',
+                                u'nispahim_link',
+                                u'number',
+                                u'plan_id',
+                                u'plan_type',
+                                u'region',
+                                u'status',
+                                u'takanon_link',
+                                u'tasrit_link',
+                                u'year'])
 
     #eq_(sample['status'], u"פרסום בעיתונות להפקדה ")
     assert_true('30649' in sample['gushim'])
@@ -88,11 +86,9 @@ def test_api_get_plan():
     # eq_(sample['essence'], u"השלמת קומה והרחבות דיור")
 
 
-@with_setup(setup, teardown)
 def test_api_wakeup():
     response = testapp.get('/wakeup')
     j = json.loads(response.data)
     eq_(response.status_code, 200)
     eq_(response.mimetype, 'application/json')
     eq_(j, {"morning": "good"})
-
