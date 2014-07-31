@@ -82,7 +82,7 @@ def _plans_query_to_atom_feed(request, query={}, limit=0, feed_title=''):
         
         # special emphasizing for some statuses
         if p['status'] in [u'פרסום ההפקדה', u'פרסום בעיתונות להפקדה']:
-            status = u'**%s**' % p['status']
+            status = u'»»%s««' % p['status']
         else:
             status = p['status']
         
