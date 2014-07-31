@@ -4,10 +4,11 @@ import requests
 import re
 import logging
 import json
+import datetime
 from hashlib import md5
 from copy import deepcopy
 
-from app import *
+from conn import *
 
 date_pattern = re.compile(r'(\d+/\d+/\d+)')
 SITE_ENCODING = 'windows-1255'
@@ -210,11 +211,12 @@ def hash_gush_json(gush_json):
     return md5(json.dumps(gush_json, sort_keys=True)).hexdigest()
 
 
-def scrape_gush(gush, RUN_FOLDER=False):
+def scrape_gush(gush, RUN_FOLDER=False, TESTING=False):
     """
     Accepts a gush object, scrapes data from gush URL and saves it into the plans collection
 
     RUN_FOLDER is for testing
+    TESTING is because we don't have access to the flask app from here anymore
     """
 
     gush_id = gush['gush_id']
@@ -243,12 +245,18 @@ def scrape_gush(gush, RUN_FOLDER=False):
     json_hash = hash_gush_json(deepcopy(gush_json))
     if gush["json_hash"] == json_hash:
         log.debug("gush plans' data hasn't changed, returning")
+        """
+        need to update last_checked_at even if the plan data hasn't changed, so the gush's 
+        scraping priority on the next scrape would be less than earlier-checked gushim
+        """
+        gush["last_checked_at"] = datetime.datetime.now()
+        db.gushim.save(gush)
         return True
 
     plans_data = extract_data(gush_json)
 
     # Testing, just return the plans json
-    if app.config['TESTING']:
+    if TESTING:
         return plans_data
     
     # select all existing plans in one db transaction

@@ -6,9 +6,10 @@ import sys
 import logging
 from optparse import OptionParser, SUPPRESS_HELP
 from rq import Queue
-from app import *
-from worker import conn
+from app import app
+from tools.conn import *
 from tools.scrapelib import scrape_gush
+from worker import redis_conn
 
 
 def scrape(gush_id, no_queue=False):
@@ -17,7 +18,17 @@ def scrape(gush_id, no_queue=False):
 
     # find gush/im
     if gush_id == "all":
-        gushim = db.gushim.find()
+        """
+        this is how we combat the low amount of memory available with the free redis instance -
+        sort the gushim by descending last_checked_at timestamps. this is done because
+        when redis reaches maxmemory it blocks ALL writes, so rq cannot work anymore
+        until someone manually deletes stuff (even dequeueing doesn't work). so current
+        solution is setting redis's maxmemory-policy to allkeys-lru, and that way the
+        earliest jobs will just be discarded, and since we have the gushim by descending
+        last checked order, the later-checked gushim will be discarded one by one so we
+        can scrape the gushim that have not been scraped recently.
+        """
+        gushim = db.gushim.find().sort(u'last_checked_at', -1)
     else:
         gushim = [db.gushim.find_one({"gush_id": gush_id})]
     log.debug("Found gushim: %s", gushim)
@@ -26,13 +37,13 @@ def scrape(gush_id, no_queue=False):
         log.warn("redis queuing is disabled, this is not recommended")
         for g in gushim:
             log.info("Scraping gush %s", g['gush_id'])
-            scrape_gush(g)
+            scrape_gush(g, False, app.config['TESTING'])
     else:
         # enqueue them
-        q = Queue(connection=conn)
+        q = Queue(connection=redis_conn)
         for g in gushim:
             log.info("Queuing gush %s for scraping", g['gush_id'])
-            q.enqueue(scrape_gush, g)
+            q.enqueue(scrape_gush, g, False, app.config['TESTING'])
 
 
 if __name__ == '__main__':

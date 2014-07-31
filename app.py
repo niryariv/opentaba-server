@@ -4,8 +4,6 @@
 import os
 import datetime
 import json
-import pymongo
-from pymongo.errors import ConnectionFailure
 from bson import json_util
 from urlparse import urlparse
 from functools import wraps
@@ -21,23 +19,11 @@ from flask import abort, make_response, request
 
 from pylibmc import Client
 
+from tools.conn import *
+from tools.gushim import GUSHIM
+
 app = Flask(__name__)
-
-MONGO_URL = os.environ.get('MONGOHQ_URL')
-
-if MONGO_URL:  # on Heroku, get a connection
-    m_conn = pymongo.Connection(MONGO_URL)
-    db = m_conn[urlparse(MONGO_URL).path[1:]]
-    RUNNING_LOCAL = False
-else:  # work locally
-    try:
-        m_conn = pymongo.Connection('localhost', 27017)
-    except ConnectionFailure:
-        print('You should have mongodb running')
-
-    db = m_conn['citymap']
-    RUNNING_LOCAL = True
-    app.debug = True  # since we're local, keep debug on
+app.debug = RUNNING_LOCAL # if we're local, keep debug on
 
 # cache connection retry data
 MAX_CACHE_RETRIES = 3
@@ -275,7 +261,19 @@ def get_plans(gush_id):
 @app.route('/plans.atom')
 @cached(timeout=3600)
 def atom_feed():
-    return _plans_query_to_atom_feed(request, limit=20, feed_title=u'תב״ע פתוחה - ירושלים').get_response()
+    return _plans_query_to_atom_feed(request, limit=20, feed_title=u'תב״ע פתוחה').get_response()
+
+
+@app.route('/<city>/plans.atom')
+def atom_feed_city(city):
+    if city not in GUSHIM.keys():
+        abort(404)
+    
+    if len(GUSHIM[city]['list']) > 1:
+        query = {'gushim': {'$in': GUSHIM[city]['list']}}
+    else:
+        query = {'gushim': GUSHIM[city]['list'][0]}
+    return _plans_query_to_atom_feed(request, query, limit=20, feed_title=u'תב״ע פתוחה - ' + GUSHIM[city]['display'].decode('unicode-escape')).get_response()
 
 
 @app.route('/gush/<gushim>/plans.atom')
@@ -287,10 +285,10 @@ def atom_feed_gush(gushim):
     """
     gushim = gushim.split(',')
     if len(gushim) > 1:
-        query = {"gush_id": {"$in": gushim}}
+        query = {'gushim': {'$in': gushim}}
     else:
-        query = {"gush_id": gushim[0]}
-    return _plans_query_to_atom_feed(request, query, feed_title=u'תב״ע פתוחה - ירושלים - גוש %s' % ', '.join(gushim)).get_response()
+        query = {'gushim': gushim[0]}
+    return _plans_query_to_atom_feed(request, query, feed_title=u'תב״ע פתוחה - גוש %s' % ', '.join(gushim)).get_response()
 
 
 # TODO add some text on the project
