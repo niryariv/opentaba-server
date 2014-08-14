@@ -1,120 +1,67 @@
+# -*- coding: utf-8 -*-
+
 from bs4 import BeautifulSoup
 import lxml
-import requests
 import re
 import logging
 import json
 import datetime
 from hashlib import md5
 from copy import deepcopy
+from multiprocessing.pool import ThreadPool
 
 from conn import *
+from mmi_scrape import get_mmi_gush_json
+from mavat_scrape import get_mavat_gush_json
 
 date_pattern = re.compile(r'(\d+/\d+/\d+)')
-SITE_ENCODING = 'windows-1255'
+mmi_bad_plan_number_no_slash_pattern = re.compile(ur'^(.*[0-9]+)([א-ת])$')
+mmi_bad_plan_number_leading_zero_pattern = re.compile(r'^(0+)([0-9]+)$')
 
 log = logging.getLogger(__name__)
 
 
-def get_gush_json_page(requests_session, page_num, cookie, view_state, data_source):
-    r = requests_session.post(
-        'http://mmi.gov.il/IturTabot2/taba1.aspx', 
-        cookies=cookie, 
-        data={'scriptManagerId_HiddenField':None,'__EVENTTARGET':None,'__EVENTARGUMENT':None,'__VIEWSTATE':view_state,'cpe_ClientState':None,'txtMsTochnit':None,'cmsStatusim$textBox':None,'txtGush':None,'txtwinCal1$textBox':None,'txtwinCal1$popupWin$time':None,'txtwinCal1$popupWin$mskTime_ClientState':None,'txtFromHelka':None,'txtwinCal2$textBox':None,'txtwinCal2$popupWin$time':None,'txtwinCal2$popupWin$mskTime_ClientState':None,'txtMakom':None,'cmsMerchaveiTichnun$textBox':None,'cmsYeudRashi$textBox':None,'txtMatara':None,'cmsYeshuvim$textBox':None,'cmsKodAchrai$textBox':None,'cmsTakanon$textBox':None,'txtAchrai':None,'cmsSug$textBox':None,'cmsMmg$textBox':None,'cmsKodMetachnen$textBox':None,'cmsTasrit$textBox':None,'txtMetachnen':None,'__CALLBACKID':'scriptManagerId',
-            '__CALLBACKPARAM':'Mmi.Tashtiot.UI.AjaxComponent.TableView$#$~$#$GetData$#${"P0":"'+data_source+'","P1":'+str(page_num)+',"P2":-1,"P3":["mtysvShemYishuv","Link","Status","tbMahut","Takanon","Tasrit","Nispach","Mmg","tbMakom","tbYechidotDiur","mtmrthTirgumMerchav","mtstTargumSugTochnit","svtTargumSugVaadatTichnun","tbTochnitId"],"P4":"~","P5":"~","P6":true,"P7":true}'
-        })
-    
-    return r.text
-
-
 def get_gush_json(gush_id):
-    """
-    Get JSON data for gush_id from the Minhal's website
-    """
     log.debug("About to download Gush JSON for %s", gush_id)
     
     try:
-        ses = requests.Session()
+        # Use different threads to get data from mmi and mavat
+        scrape_pool = ThreadPool(processes=1)
+        async_mmi_scrape = scrape_pool.apply_async(get_mmi_gush_json, (gush_id,))
+        async_mavat_scrape = scrape_pool.apply_async(get_mavat_gush_json, (gush_id,))
         
-        # Get the base search page and save the aspx session cookie, data source and view state
-        r = ses.get('http://mmi.gov.il/IturTabot2/taba1.aspx')
-        yum = r.cookies
-        # print 'GET http://mmi.gov.il/IturTabot2/taba1.aspx', r.text
-
-        data_source = re.findall(r'tblView_[A-Za-z0-9]+', r.text)[-1]
-
-        html = BeautifulSoup(r.text, 'lxml', from_encoding=SITE_ENCODING)
-        view_state = html('input', id='__VIEWSTATE')[0]['value']
-
-        # Tell the server which fields we are displaying
-        r = ses.post('http://mmi.gov.il/IturTabot2/taba1.aspx', cookies=yum, data={
-            'scriptManagerId_HiddenField':None,
-            '__EVENTTARGET':None,
-            '__EVENTARGUMENT':None,
-            '__VIEWSTATE':view_state,
-            'cpe_ClientState':None,
-            'txtMsTochnit':None,
-            'cmsStatusim$textBox':None,
-            'txtGush':None,
-            'txtwinCal1$textBox':None,
-            'txtwinCal1$popupWin$time':None,
-            'txtwinCal1$popupWin$mskTime_ClientState':None,
-            'txtFromHelka':None,
-            'txtwinCal2$textBox':None,
-            'txtwinCal2$popupWin$time':None,
-            'txtwinCal2$popupWin$mskTime_ClientState':None,
-            'txtMakom':None,
-            'cmsMerchaveiTichnun$textBox':None,
-            'cmsYeudRashi$textBox':None,
-            'txtMatara':None,
-            'cmsYeshuvim$textBox':None,
-            'cmsKodAchrai$textBox':None,
-            'cmsTakanon$textBox':None,
-            'txtAchrai':None,
-            'cmsSug$textBox':None,
-            'cmsMmg$textBox':None,
-            'cmsKodMetachnen$textBox':None,
-            'cmsTasrit$textBox':None,
-            'txtMetachnen':None,
-            '__CALLBACKID':'scriptManagerId',
-            '__CALLBACKPARAM': 'Mmi.Tashtiot.UI.AjaxComponent.TableView$#$~$#$GetData$#${"P0":"'+data_source+'","P1":0,"P2":-1,"P3":["mtysvShemYishuv","Link","Status","tbMahut","Takanon","Tasrit","Nispach","Mmg","tbMakom","tbYechidotDiur","mtmrthTirgumMerchav","mtstTargumSugTochnit","svtTargumSugVaadatTichnun","tbTochnitId"],"P4":"~","P5":"~","P6":true,"P7":true}'
-            })
-            # Note and warning: other available fields for selction are: "tbMerchav","tbMsTochnit","tbMsTochnitYashan","tbKodIshuv","tbSug","tbTamlilSaruk","tbMmg","mtmhzShemMachoz","tbTabaSruka","mtsttKvutzatStatusim","tbAchrai","tbMetachnen","tbShemMetachnen","mtkyPianuachYeud","tbYalkut","tbTaarichDigitation","tUniqueID"
-            # DO NOT, however, select the field "tbMatara", as it reduces the amount of results in jerusalem from ~15000 to ~1500 (true for June 18th 2014)
-            # and, if fields are added here they should be added above as well in the get_gush_json_page function
-
-        # Send a parameterized request to the server (just search for the gush)
-        r = ses.post(
-            'http://mmi.gov.il/IturTabot2/taba1.aspx/getNetuneiTochniotByAllParames', 
-            headers={'Content-Type':'application/json'}, 
-            cookies=yum, 
-            data=json.dumps({
-                'IsOneRow': False,'SourceName': data_source,'bBProjects': False,'conMachoz': 0,'iFromHelka': "-1",'iGush': gush_id,'iMaamadMoncipali': "-1",'iMachoz': "-1",'iNumOfRows': 300,'iToHelka': "-1",'rtncol': 2,'sAchrai': "~",'sFromTaarichStatus': "~",'sKodAchrai': "~",'sKodIshuv': "~",'sKodMetachnen': "~",'sKvutzatStatusim': "~",'sMakom': "~",'sMatara': "~",'sMerchav': "~",'sMetachnen': "~",'sMisTochnit': "~",'sMmg': "~",'sSug': "~",'sTabaSruka': "~",'sTakanon': "~",'sTasrit': "~",'sTik': "~",'sToTaarichStatus': "~",'sVaada': "~",'sYeudRashi': "~"
-          })
-        )
-
-        result = []
-        page = 0
-
-        # Get the first page of results and extra data
-        first_page = get_gush_json_page(ses, page, yum, view_state, data_source)
-        result = result + json.loads(re.findall('\[.*?\]', first_page)[0])
-
-        # Get the number of pages from the first page (every page has this)
-        pages = int(re.findall('\$([\-#0-9]*)', re.findall('\](.*?){', first_page)[0])[7])
-
-        # Get the rest of the pages
-        while page < pages:
-            page = page + 1
-            result = result + json.loads('[' + re.findall('\[(.*?)\]', get_gush_json_page(ses, page, yum, view_state, data_source))[0] + ']')
-
-        ses.close()
-            
+        mmi_json = async_mmi_scrape.get()
+        mavat_json = async_mavat_scrape.get()
     except Exception, e:
         log.exception("ERROR: %s", e)
         exit(1)
-
-    return result
+    
+    # We need to try to match mmi plans to mavat plans, which is not very easy because they don't seem to follow the same rules
+    # eg. there are lots of extra spaces in mavat, and dashes that don't exist in the mmi numbers
+    for mmi_plan in mmi_json:
+        # Get the plan number from the mmi plan and put it in a list so we can compare to it AND the fixed values if it will be needed
+        bs = BeautifulSoup(mmi_plan['Link'], 'lxml')
+        mmi_number = [ bs('a')[0].contents[0] ]
+        
+        # Check if the mmi plan number is missing a slash
+        bad_mmi_number = re.search(mmi_bad_plan_number_no_slash_pattern, mmi_number[0])
+        if bad_mmi_number:
+            mmi_number.append(''.join(bad_mmi_number.group(0)[0:-1]) + '/' + bad_mmi_number.group(0)[-1])
+        else:
+            # Check if the mmi plan number starts with a zero (eg. "0856")
+            bad_mmi_number = re.search(mmi_bad_plan_number_leading_zero_pattern, mmi_number[0])
+            if bad_mmi_number:
+                mmi_number.append(''.join(bad_mmi_number.group(0)[1:]))
+        
+        # Now just try to match mavat plan numbers with any of the mmi possible plan numbers' list
+        for mavat_plan in mavat_json:
+            if mavat_plan['number'] in mmi_number:
+                mmi_plan['mavat_code'] = unicode(mavat_plan['code'])
+                mmi_plan['mavat_files'] = mavat_plan['files']
+                mmi_plan['mavat_meetings'] = mavat_plan['meetings']
+                break
+    
+    return mmi_json
 
 
 def extract_data(gush_json):
@@ -138,7 +85,10 @@ def extract_data(gush_json):
                'housing_units': 0,
                'region': '',
                'plan_type': '',
-               'committee_type' : ''}
+               'committee_type' : '',
+               'mavat_code': '',
+               'mavat_files': [],
+               'mavat_meetings': []}
         
         rec['plan_id'] = plan['tbTochnitId']
         rec['area'] = plan['mtysvShemYishuv'].strip()
@@ -192,6 +142,12 @@ def extract_data(gush_json):
         rec['region'] = plan['mtmrthTirgumMerchav']
         rec['plan_type'] = plan['mtstTargumSugTochnit']
         rec['committee_type'] = plan['svtTargumSugVaadatTichnun']
+        
+        # check if we managed to pair the mmi data for this plan with its mavat data
+        if 'mavat_code' in plan.keys():
+            rec['mavat_code'] = plan['mavat_code']
+            rec['mavat_files'] = plan['mavat_files']
+            rec['mavat_meetings'] = plan['mavat_meetings']
         
         data.append(rec)
     
