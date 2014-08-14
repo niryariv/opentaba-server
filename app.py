@@ -78,7 +78,10 @@ def _plans_query_to_atom_feed(request, query={}, limit=0, feed_title=''):
         if not title:
             title = p['number']
         
-        links = [{'href' : 'http://www.mavat.moin.gov.il/MavatPS/Forms/SV3.aspx?tid=4&tnumb=' + p['number'], 'rel': 'related', 'title': u'מבא"ת'}]
+        if p['mavat_code'] == '':
+            links = [{'href' : 'http://www.mavat.moin.gov.il/MavatPS/Forms/SV3.aspx?tid=4&tnumb=' + p['number'], 'rel': 'related', 'title': u'מבא"ת'}]
+        else:
+            links = [{'href': '%splan/%s/mavat' % (request.url_root, p['plan_id']), 'rel': 'related', 'title': u'מבא"ת'}]
 
         feed.add(
             title=title,
@@ -288,6 +291,28 @@ def atom_feed_gush(gushim):
     else:
         query = {'gushim': gushim[0]}
     return _plans_query_to_atom_feed(request, query, feed_title=u'תב״ע פתוחה - גוש %s' % ', '.join(gushim)).get_response()
+
+
+@app.route('/plan/<plan_id>/mavat')
+def redirect_to_mavat(plan_id):
+    """
+    If we have a mavat code for the given plan redirect the client to the plan's page on the
+    mavat website using an auto-sending form
+    """
+    try: 
+        plan = db.plans.find_one({'plan_id': int(plan_id)})
+    except ValueError: # plan_id is not an int
+        abort(400)
+    except: # DB error
+        abort(500)
+    
+    if plan is None or plan['mavat_code'] == '':
+        abort(404)
+    
+    return ('<html><body>'
+            '<form action="http://mavat.moin.gov.il/MavatPS/Forms/SV4.aspx?tid=4" method="post" name="redirect_form">'
+            '<input type="hidden" name="PL_ID" value="' + plan['mavat_code'] + '">'
+            '</form><script language="javascript">document.redirect_form.submit();</script></body></html>')
 
 
 # TODO add some text on the project
