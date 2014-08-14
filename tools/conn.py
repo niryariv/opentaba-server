@@ -5,6 +5,7 @@ This is the code to make a connection to our mongodb instance
 import os
 import pymongo
 from pymongo.errors import ConnectionFailure
+from urlparse import urlparse
 
 MONGO_URL = os.environ.get('MONGOHQ_URL')
 

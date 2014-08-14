@@ -5,7 +5,6 @@ import os
 import datetime
 import json
 from bson import json_util
-from urlparse import urlparse
 from functools import wraps
 import email.utils
 from time import time
