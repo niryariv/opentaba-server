@@ -15,7 +15,7 @@ install:
   - pip install Flask==$FLASK
 
 before_script:
-  - python tools/create_db.py --force -m jerusalem
+  - python tools/create_db.py --force -m all
   - mkdir filecache
   - chmod -R 0777 filecache 
   - python scrape.py -g 30649
