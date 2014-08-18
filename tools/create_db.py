@@ -6,12 +6,21 @@ from optparse import OptionParser
 
 parser = OptionParser()
 parser.add_option("--force", dest="force", default=False, action="store_true", help="delete existing dbs")
+parser.add_option("-m", dest="municipality", help="name of the municipality this server should serve ('all' to serve all of them)")
 
 (options, args) = parser.parse_args()
 
 if not options.force:
     print ("This script will delete the gushim and plans collection. "
            "To make sure this isn't running by mistake, run this with --force")
+    exit()
+
+if not options.municipality:
+    print ("Parameter \"-m <specific-municipality | all>\" must be specified")
+    exit()
+
+if options.municipality != "all" and options.municipality not in GUSHIM.keys():
+    print ("Municipality %s does not exist" % options.municipality)
     exit()
 
 # print "Deleting db.gushim and db.plans"
@@ -30,12 +39,13 @@ one instance of each gush number
 existing_gushim = []
 
 for city in GUSHIM.keys():
-    for g in GUSHIM[city]['list']:
-        if g not in existing_gushim:
-            db.gushim.insert({'gush_id': g,
-                              'json_hash': '',
-                              'last_checked_at': ''})
-            existing_gushim.append(g)
+    if options.municipality == 'all' or city == options.municipality:
+        for g in GUSHIM[city]['list']:
+            if g not in existing_gushim:
+                db.gushim.insert({'gush_id': g,
+                                  'json_hash': '',
+                                  'last_checked_at': ''})
+                existing_gushim.append(g)
 
 db.plans.create_index([('plan_id', pymongo.DESCENDING)], unique=True)
 db.plans.create_index([('gushim', pymongo.ASCENDING),

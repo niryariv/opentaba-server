@@ -15,7 +15,7 @@ The code is Flask based, working with MongoDB as database, Uses redis to handle 
 Notice that if you are running this on a local dev machine you need to have mongodb running and listening in port 27017
 #### Create initial DB
 
-    python create_db --force
+    python create_db --force -m [all | <muni>]
 
 #### Scrape data into DB
 
@@ -33,7 +33,7 @@ On Heroku:
     heroku run python scrape.py -g [all | <gush_id>]
     heroku run worker
     
-##TESTING
+##Testing
 
 run the tests (needs ```pip install nose```):
 
@@ -43,6 +43,24 @@ or for a specifc test
     nosetests Tests/path/to/test
     
 from the project root folder
+
+##Production
+###Architecture
+The production environment is made up of a [Heroku](http://heroku.com) app per municipality
+###Maintenance
+Maintenance is done using [fabric](http://fabfile.org), by activating different tasks defined in fabfile.py 
+(for a list of all tasks, run `fab -l`, and for details about a specific task run `fab -d <task-name>`)
+To execute a task, run: `fab task-name:arg1,arg2...` or `fab task-name:arg1=val1,arg2=val2...`
+
+Main tasks:
++ create_app (app_name) : create a new heroku app, add a new remote to the local git repository for the new app, 
+  push (deploy), run the create_db script for the given municipality, scrape all gushim, open scheduler dashboard
+  to schedule a daily scraping.
++ delete_app (app_name) : delete a heroku app and remove it from the local git repository's remotes.
++ deploy_all () : push all changes done in the local repository to all remote repositories defined in the 
+  remote "all_apps".
++ scrape_all (app_name, show_output=False) : scrape all gushim now in the given app. if show_output is False
+  the heroku bash will be released and the scraping output will not be continuosly sent to your shell.
 
 ## API
 
