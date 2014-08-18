@@ -72,7 +72,7 @@ def _plans_query_to_atom_feed(request, query={}, limit=0, feed_title=''):
             status = p['status']
         
         content = p['essence'] + ' [' + status + ', ' + '%02d/%02d/%04d' % (p['day'], p['month'], p['year']) + \
-            ', ' + p['number'] + '] (http://www.mavat.moin.gov.il/MavatPS/Forms/SV3.aspx?tid=4&tnumb=' + p['number'] + ')'
+            ', ' + p['number'] + ']'
         title = p['location_string']
         # 'not title' is not supposed to happen anymore because every plan currently has a location
         if not title:
