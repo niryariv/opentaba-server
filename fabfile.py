@@ -12,6 +12,11 @@ def _heroku_connect():
     local('heroku auth:whoami')
 
 
+@runs_once
+def _get_app_full_name(app_name):
+    return 'opentaba-server-%s' % app_name
+
+
 def _get_apps():
     # get the defined remotes' names, without 'origin' or 'all_apps'
     apps = ''.join(local('git remote', capture=True)).split('\n')
@@ -28,12 +33,13 @@ def create_app(app_name):
     """Create a new heroku app for a new municipality"""
     
     _heroku_connect()
+    full_name = _get_app_full_name(app_name)
     
     # create a new heroku app with the needed addons
-    local('heroku apps:create %s --addons scheduler:standard,memcachedcloud:25,mongohq:sandbox,redistogo:nano' % app_name)
+    local('heroku apps:create %s --addons scheduler:standard,memcachedcloud:25,mongohq:sandbox,redistogo:nano' % full_name)
     
     # get the new app's git url
-    app_info = ''.join(local('heroku apps:info -s --app %s' % app_name, capture=True)).split('\n')
+    app_info = ''.join(local('heroku apps:info -s --app %s' % full_name, capture=True)).split('\n')
     app_git = None
     for i in app_info:
         if i[0:7] == 'git_url':
@@ -66,7 +72,7 @@ def create_app(app_name):
     print 'Command is: "python scrape.py -g all ; python worker.py" (without both "),'
     print '1X dyno, daily frequency, next run 04:00'
     print '*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*'
-    local('heroku addons:open scheduler --app %s' % app_name)
+    local('heroku addons:open scheduler --app %s' % full_name)
 
 
 @task
@@ -74,6 +80,7 @@ def delete_app(app_name, ignore_errors=False):
     """Delete a heroku app"""
     
     _heroku_connect()
+    full_name = _get_app_full_name(app_name)
     
     with settings(warn_only=True):
         # try to find the app's git url if it is a remote here
@@ -91,7 +98,7 @@ def delete_app(app_name, ignore_errors=False):
         local('git remote remove %s' % app_name, capture=ignore_errors)
         
         # delete heroku app
-        local('heroku apps:destroy --app %s --confirm %s' % (app_name, app_name), capture=ignore_errors)
+        local('heroku apps:destroy --app %s --confirm %s' % (full_name, full_name), capture=ignore_errors)
 
 
 @task
@@ -113,7 +120,9 @@ def create_db(app_name):
     """Run the create_db script file on a certain heroku app"""
     
     _heroku_connect()
-    local('heroku run "python tools/create_db.py --force -m %s" --app %s' % (app_name, app_name))
+    full_name = _get_app_full_name(app_name)
+    
+    local('heroku run "python tools/create_db.py --force -m %s" --app %s' % (app_name, full_name))
 
 
 @task
@@ -121,7 +130,9 @@ def update_db(app_name):
     """Run the update_db script file on a certain heroku app"""
     
     _heroku_connect()
-    local('heroku run "python tools/update_db.py --force -m %s" --app %s' % (app_name, app_name))
+    full_name = _get_app_full_name(app_name)
+    
+    local('heroku run "python tools/update_db.py --force -m %s" --app %s' % (app_name, full_name))
 
 
 @task
@@ -129,11 +140,12 @@ def scrape_all(app_name, show_output=False):
     """Scrape all gushim on a certain heroku app"""
     
     _heroku_connect()
+    full_name = _get_app_full_name(app_name)
     
     if show_output:
-        local('heroku run "python scrape.py -g all; python worker.py" --app %s' % app_name)
+        local('heroku run "python scrape.py -g all; python worker.py" --app %s' % full_name)
     else:
-        local('heroku run:detached "python scrape.py -g all; python worker.py" --app %s' % app_name)
+        local('heroku run:detached "python scrape.py -g all; python worker.py" --app %s' % full_name)
 
 
 @task
