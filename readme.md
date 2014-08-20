@@ -194,7 +194,7 @@ municipality you are deploying)
 4. Now create and configure the new Heroku app. This will also scrape the 
    municipality's plans for the first time. Run:
    `fab create_app:givataiim`
-5. When the task finishes running a browser window (or tab) will be open with 
+5. When the task finishes running, a browser window (or tab) will be open with 
    the new app's scheduler dashboard. Add a new scheduled task with the 
    command: "python scrape.py -g all ; python worker.py" (without both "), 
    leave it at 1X dyno, set it to run daily and set the next run for 4:00 AM.

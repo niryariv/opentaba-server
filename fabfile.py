@@ -3,8 +3,10 @@ fab file for managing opentaba-server heroku apps
 """
 
 from fabric.api import *
-from request import get
-from json import loads
+from requests import get
+from json import loads, dumps
+import re
+import os
 
 
 @runs_once
@@ -31,8 +33,9 @@ def _get_apps():
 
 
 def _download_gush_map(muni_name, topojson=False):
-    r = get('http://raw.githubusercontent.com/niryariv/israel_gushim/master/%s.%s' % (muni_name, 'topojson' if topojson else 'geojson'))
-    if r.status != 200:
+    url = 'https://raw.githubusercontent.com/niryariv/israel_gushim/master/%s.%s' % (muni_name, 'topojson' if topojson else 'geojson')
+    r = get(url)
+    if r.status_code != 200:
         abort('Failed to download gushim map')
     
     try:
@@ -130,7 +133,7 @@ def add_gushim(muni_name, display_name):
     
     # open and load the existing gushim dictionary from tools/gushim.py
     with open(os.path.join('tools', 'gushim.py')) as gushim_data:
-        existing_gushim = loads(gushim_data.read())
+        existing_gushim = loads(gushim_data.read().replace('GUSHIM = ', ''))
     
     # remove all existing gushim from our new-gushim list, or create a new dictionary entry
     if muni_name in existing_gushim.keys():
@@ -152,7 +155,23 @@ def add_gushim(muni_name, display_name):
     
     # write the dictionary back to tools/gushim.py
     out = open(os.path.join('tools', 'gushim.py'), 'w')
-    out.write('GUSHIM = ' + json.dumps(existing_gushim, sort_keys=True, indent=4, separators=(',', ': ')))
+    out.write('GUSHIM = ' + dumps(existing_gushim, sort_keys=True, indent=4, separators=(',', ': ')))
+    out.close
+    
+    # update the automated test to test for the new total number of gushim
+    total = []
+    for key in existing_gushim.keys():
+        for g in existing_gushim[key]['list']:
+            if g not in total:
+                total.append(g)
+    
+    with open(os.path.join('Tests', 'functional_tests', 'test_return_json.py')) as test_data:
+        test_code = test_data.read()
+        gush_count_line_re = re.compile('(eq_\(len\(j\), )[0-9]+(\))')
+        test_code = gush_count_line_re.sub('eq_(len(j), %s)' % len(total), test_code, count=1)
+    
+    out = open(os.path.join('Tests', 'functional_tests', 'test_return_json.py'), 'w')
+    out.write(test_code)
     out.close
     
     print '*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*'
