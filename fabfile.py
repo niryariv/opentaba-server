@@ -3,6 +3,8 @@ fab file for managing opentaba-server heroku apps
 """
 
 from fabric.api import *
+from request import get
+from json import loads
 
 
 @runs_once
@@ -26,6 +28,19 @@ def _get_apps():
         apps.remove('all_apps')
     
     return apps
+
+
+def _download_gush_map(muni_name, topojson=False):
+    r = get('http://raw.githubusercontent.com/niryariv/israel_gushim/master/%s.%s' % (muni_name, 'topojson' if topojson else 'geojson'))
+    if r.status != 200:
+        abort('Failed to download gushim map')
+    
+    try:
+        res = loads(r.text)
+    except:
+        abort('Gushim map is an invalid JSON file')
+    
+    return res
 
 
 @task
@@ -99,6 +114,52 @@ def delete_app(app_name, ignore_errors=False):
         
         # delete heroku app
         local('heroku apps:destroy --app %s --confirm %s' % (full_name, full_name), capture=ignore_errors)
+
+
+@task
+def add_gushim(muni_name, display_name):
+    """Add the gush ids from an existing online gush map to the tools/gushim.py file"""
+    
+    # download the online gush map
+    gush_map = _download_gush_map(muni_name)
+    gush_ids = []
+    
+    # make a list of all gush ids in the file
+    for geometry in gush_map['features']:
+        gush_ids.append(geometry['properties']['Name'])
+    
+    # open and load the existing gushim dictionary from tools/gushim.py
+    with open(os.path.join('tools', 'gushim.py')) as gushim_data:
+        existing_gushim = loads(gushim_data.read())
+    
+    # remove all existing gushim from our new-gushim list, or create a new dictionary entry
+    if muni_name in existing_gushim.keys():
+        for eg in existing_gushim[muni_name]['list']:
+            if eg in gush_ids:
+                gush_ids.remove(eg)
+    elif display_name == '':
+        abort('For new municipalities display name must be provided')
+    else:
+        existing_gushim[muni_name] = {'display':'', 'list':[]}
+    
+    existing_gushim[muni_name]['display'] = display_name
+    
+    # append the remaining gush ids list
+    if len(gush_ids) > 0:
+        existing_gushim[muni_name]['list'] += gush_ids
+    else:
+        abort('No new gush ids were found in the downloaded gush map')
+    
+    # write the dictionary back to tools/gushim.py
+    out = open(os.path.join('tools', 'gushim.py'), 'w')
+    out.write('GUSHIM = ' + json.dumps(existing_gushim, sort_keys=True, indent=4, separators=(',', ': ')))
+    out.close
+    
+    print '*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*'
+    print 'The new gushim data was added to tools/gushim.py, but was not comitted.'
+    print 'Please give the changes a quick look-see and make sure they look fine, then '
+    print 'commit the changes and deploy your new/exisiting app.'
+    print '*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*'
 
 
 @task
