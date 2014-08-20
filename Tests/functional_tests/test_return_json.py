@@ -31,7 +31,7 @@ def test_api_gushim():
     response = testapp.get('/gushim.json')
     print(dir(response))
     j = json.loads(response.data)
-    eq_(len(j), 683)  # the correct number
+    eq_(len(j), 788)  # the correct number
     eq_(response.status_code, 200)
     eq_(response.mimetype, 'application/json')
 
