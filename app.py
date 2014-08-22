@@ -90,7 +90,7 @@ def _plans_query_to_atom_feed(request, query={}, limit=0, feed_title=''):
             author="OpenTABA.info",
             # id=url + '&status=' + p['status'], 
             # ^^ it seems like the &tblView= value keeps changing in the URL, which causes the ID to change and dlvr.it to republish items.
-            id=title + p['status'],
+            id="%s-%s" % (title, p['status']),
             # this is a unique ID (not real URL) so adding status to ensure uniqueness in TBA stages
             url=url,
             links=links,
