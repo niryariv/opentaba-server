@@ -41,7 +41,7 @@ def create_app(app_name, display_name):
     full_name = _get_app_full_name(app_name)
     
     # start by adding the gushim to index.js
-    update_gushim_from_central_repo(site_name, display_name)
+    update_gushim_server(site_name, display_name)
     
     # create a new heroku app with the needed addons
     local('heroku apps:create %s --addons scheduler:standard,memcachedcloud:25,mongohq:sandbox,redistogo:nano' % full_name)

@@ -93,7 +93,7 @@ def create_site(site_name, display_name):
         repo_name = _get_repo_name(site_name)
         
         # start by adding the gushim to index.js
-        update_gushim_from_central_repo(site_name, display_name)
+        update_gushim_client(site_name, display_name)
         
         # create a new repo for the new site
         try:
