@@ -162,7 +162,7 @@ def update_gushim_client(muni_name, display_name=''):
         geojson_gush_map = _download_gush_map(muni_name)
     
         # load the current municipalities' index dictionary
-        with open(os.path.join('data', 'index.js')) as index_data:
+        with open(os.path.join('..', 'opentaba-client', 'data', 'index.js')) as index_data:
             index_json = loads(index_data.read().replace('var municipalities = ', '').rstrip('\n').rstrip(';'))
     
         # add a new entry if needed
@@ -177,9 +177,11 @@ def update_gushim_client(muni_name, display_name=''):
         index_json[muni_name]['center'] = _get_muni_center(geojson_gush_map['features'])
     
         # write back the index.js file
-        out = open(os.path.join('data', 'index.js'), 'w')
+        out = open(os.path.join('..', 'opentaba-client', 'data', 'index.js'), 'w')
         out.write('var municipalities = ' + dumps(index_json, sort_keys=True, indent=4, separators=(',', ': ')) + ';')
-        out.close
+        out.flush()
+        out.close()
+        os.fsync()
     
         # commit and push to origin
         local('git add %s' % os.path.join('data', 'index.js'))

@@ -146,7 +146,8 @@ def update_gushim_server(muni_name, display_name):
         # write the dictionary back to tools/gushim.py
         out = open(os.path.join('tools', 'gushim.py'), 'w')
         out.write('GUSHIM = ' + dumps(existing_gushim, sort_keys=True, indent=4, separators=(',', ': ')))
-        out.close
+        out.flush()
+        out.close()
     
         # update the automated test to test for the new total number of gushim
         total = []
@@ -162,10 +163,13 @@ def update_gushim_server(muni_name, display_name):
     
         out = open(os.path.join('Tests', 'functional_tests', 'test_return_json.py'), 'w')
         out.write(test_code)
-        out.close
+        out.flush()
+        out.close()
+        os.fsync()
     
         # commit and push to origin
-        local('git add %s %s' % (os.path.join('tools', 'gushim.py'), os.path.join('Tests', 'functional_tests', 'test_return_json.py')))
+        local('git add %s' % os.path.join('tools', 'gushim.py'))
+        local('git add %s' % os.path.join('Tests', 'functional_tests', 'test_return_json.py'))
         local('git commit -m "added gushim and updated tests for %s"' % muni_name)
         local('git push origin master')
     
