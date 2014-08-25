@@ -5,28 +5,19 @@ import os
 import datetime
 import json
 from bson import json_util
-from functools import wraps
-import email.utils
-from time import time
 
 from werkzeug.contrib.atom import AtomFeed
-from werkzeug.contrib.cache import MemcachedCache, NullCache
 from werkzeug.urls import url_encode
 
 from flask import Flask
 from flask import abort, make_response, request
 
-from pylibmc import Client
-
 from tools.conn import *
 from tools.gushim import GUSHIM
+from tools.cache import cached, _setup_cache
 
 app = Flask(__name__)
 app.debug = RUNNING_LOCAL # if we're local, keep debug on
-
-# cache connection retry data
-MAX_CACHE_RETRIES = 3
-app.cache_retry = 0
 
 
 #### Helpers ####
@@ -100,7 +91,7 @@ def _plans_query_to_atom_feed(request, query={}, limit=0, feed_title=''):
     return feed
 
 
-#### Cache ####
+#### Cache Helper ####
 
 @app.before_first_request
 def setup_cache():
@@ -108,98 +99,13 @@ def setup_cache():
     We initialize the cache here for the first time because __main__ is not run when we launch
     within a WSGI container.
     """
-    _setup_cache()
-
-
-def _setup_cache():
-    """
-    If a test is being run or we don't want cache, NullCache will be initialized just as a dummy.
-    If running locally without the 'DISABLE_CACHE' env variable and without a memcached instance running,
-    MemcachedCache and it's underlying pylibmc will give no warning on connection, but will throw
-    exceptions when trying to work with the cache. A few connection retires will be made in that
-    scenario, and eventually the cache will be replaced with a NullCache. Binary communications must
-    be used for SASL.
-    """
-    # Setup cache
-    if app.config['TESTING'] or os.environ.get('DISABLE_CACHE', None) is not None:
-        app.cache = NullCache()
-        app.logger.debug('Cache initialized as NullCache')
-    else:
-        MEMCACHED_SERVERS = os.environ.get('MEMCACHEDCLOUD_SERVERS', '127.0.0.1:11211')
-        
-        try:
-            memcached_client = Client(servers=MEMCACHED_SERVERS.split(','),
-                                      username=os.environ.get('MEMCACHEDCLOUD_USERNAME'),
-                                      password=os.environ.get('MEMCACHEDCLOUD_PASSWORD'),
-                                      binary=True)
-            app.cache = MemcachedCache(memcached_client)
-            app.logger.debug('Cache initialized as MemcachedCache with servers: %s', MEMCACHED_SERVERS)
-        except Exception as e:
-            # very unlikely to have an exception here. pylibmc mostly throws when trying to communicate, not connect
-            app.logger.error('Error initializing MemcachedCache: %s', e);
-            app.logger.error('Initializing cache as NullCache. Fix ASAP!');
-            app.cache = NullCache()
-
-
-def cached(timeout=3600, cache_key=None, set_expires=True):
-    """
-    Caching decorator for Flask routes
-
-    Provides both caching and setting of relevant "Expires" header if appropriate.
-    Adapted from http://flask.pocoo.org/docs/patterns/viewdecorators/
-    """
-    def decorator(f):
-        @wraps(f)
-        def decorated_function(*args, **kwargs):
-            if cache_key is None:
-                ck = 'view:%s?%s' % (request.path, request.query_string)
-            else:
-                ck = cache_key
-            ek = '%s.expires' % ck
-            response = None
-            expires = None
-            
-            # pylibmc will throw an error when trying to communicate with memcached, not upon a bad connection
-            try:
-                cached = app.cache.get_many(ck, ek)
-                if cached[0] is not None:
-                    response = cached[0]
-                    app.logger.debug('Cache hit for %s, returning cached content, expires=%d', ck, cached[1])
-                    if cached[1] is not None and set_expires:
-                        expires = cached[1]
-                else:
-                    response = f(*args, **kwargs)
-                    expires = int(time() + timeout)
-                    app.cache.set_many({ck: response, ek: expires}, timeout=timeout)
-                    app.logger.debug('Cache miss for %s, refreshed content and saved in cache, expires=%d', ck, expires)
-
-                if set_expires and expires is not None:
-                    response.headers['Expires'] = email.utils.formatdate(expires)
-            except Exception as e:
-                app.logger.error('Cache error, returning miss: %s', e)
-                if response is None:
-                    response = f(*args, **kwargs)
-                
-                if (type(app.cache) is not NullCache):
-                    if (app.cache_retry < MAX_CACHE_RETRIES):
-                        app.cache_retry += 1
-                        app.logger.error('Attempting to restore cache')
-                        _setup_cache()
-                    else:
-                        app.logger.error('Exhausted retry attempts. Converting cache to NullCache. Fix ASAP!')
-                        app.cache = NullCache()
-
-            return response
-
-        return decorated_function
-
-    return decorator
+    _setup_cache(app)
 
 
 #### ROUTES ####
 
 @app.route('/gushim.json')
-@cached(timeout=3600)
+@cached(app, timeout=3600)
 def get_gushim():
     """
     get gush_id metadata
@@ -236,7 +142,7 @@ def get_gushim():
 
 
 @app.route('/gush/<gush_id>.json')
-@cached(timeout=3600)
+@cached(app, timeout=3600)
 def get_gush(gush_id):
     """
     get gush_id metadata
@@ -248,7 +154,7 @@ def get_gush(gush_id):
 
 
 @app.route('/gush/<gush_id>/plans.json')
-@cached(timeout=3600)
+@cached(app, timeout=3600)
 def get_plans(gush_id):
     """
     get plans from gush_id
@@ -263,12 +169,13 @@ def get_plans(gush_id):
 
 
 @app.route('/plans.atom')
-@cached(timeout=3600)
+@cached(app, timeout=3600)
 def atom_feed():
     return _plans_query_to_atom_feed(request, limit=20, feed_title=u'תב״ע פתוחה').get_response()
 
 
 @app.route('/<city>/plans.atom')
+@cached(app, timeout=3600)
 def atom_feed_city(city):
     if city not in GUSHIM.keys():
         abort(404)
@@ -281,7 +188,7 @@ def atom_feed_city(city):
 
 
 @app.route('/gush/<gushim>/plans.atom')
-@cached(timeout=3600)
+@cached(app, timeout=3600)
 def atom_feed_gush(gushim):
     """
     Create a feed for one or more gush IDs.
@@ -296,6 +203,7 @@ def atom_feed_gush(gushim):
 
 
 @app.route('/plan/<plan_id>/mavat')
+@cached(app, timeout=3600)
 def redirect_to_mavat(plan_id):
     """
     If we have a mavat code for the given plan redirect the client to the plan's page on the
