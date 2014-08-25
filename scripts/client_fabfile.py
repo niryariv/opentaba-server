@@ -7,6 +7,7 @@ from fabric.api import *
 from getpass import getpass
 from json import loads, dumps
 import os
+from copy import deepcopy
 
 from common import _download_gush_map
 
@@ -163,39 +164,45 @@ def update_gushim_client(muni_name, display_name=''):
     
         # load the current municipalities' index dictionary
         with open(os.path.join('..', 'opentaba-client', 'data', 'index.js')) as index_data:
-            index_json = loads(index_data.read().replace('var municipalities = ', '').rstrip('\n').rstrip(';'))
+            original_index_json = loads(index_data.read().replace('var municipalities = ', '').rstrip('\n').rstrip(';'))
+        
+        new_index_json = deepcopy(original_index_json)
     
         # add a new entry if needed
-        if muni_name not in index_json.keys():
+        if muni_name not in new_index_json.keys():
             if display_name == '':
                 abort('For new municipalities display name must be provided')
         
-            index_json[muni_name] = {'display':'', 'center':[]}
+            new_index_json[muni_name] = {'display':'', 'center':[]}
     
         # update the display name and center of the municipality's entry
-        index_json[muni_name]['display'] = display_name
-        index_json[muni_name]['center'] = _get_muni_center(geojson_gush_map['features'])
+        new_index_json[muni_name]['display'] = display_name
+        new_index_json[muni_name]['center'] = _get_muni_center(geojson_gush_map['features'])
+        
+        # don't try to add, commit etc. if no changes were made
+        if dumps(new_index_json) != dumps(original_index_json):
+            warn('No new data was found in the downloaded gush map. No changes were made to data/index.js')
+        else:
+            # write back the index.js file
+            out = open(os.path.join('..', 'opentaba-client', 'data', 'index.js'), 'w')
+            out.write('var municipalities = ' + dumps(new_index_json, sort_keys=True, indent=4, separators=(',', ': ')) + ';')
+            out.flush()
+            os.fsync(out.fileno())
+            out.close()
     
-        # write back the index.js file
-        out = open(os.path.join('..', 'opentaba-client', 'data', 'index.js'), 'w')
-        out.write('var municipalities = ' + dumps(index_json, sort_keys=True, indent=4, separators=(',', ': ')) + ';')
-        out.flush()
-        out.close()
-        os.fsync()
-    
-        # commit and push to origin
-        local('git add %s' % os.path.join('data', 'index.js'))
-        local('git commit -m "added %s to index.js"' % muni_name)
-        local('git push origin master')
-    
-        print '*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*'
-        print 'The new/updated municipality data was added to data/index.js, and its topojson '
-        print 'gushim map will be loaded from the israel_gushim repository, and changes were '
-        print 'committed and pushed to origin. If more data needs to be in index.js, you can do '
-        print 'it now and push again. If modified after app was created you will need to deploy '
-        print 'the app again (explanation of valid fields in the index.js file can be found in '
-        print 'the repository\'s DEPLOYMENT.md).'
-        print '*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*'
+            # commit and push to origin
+            local('git add %s' % os.path.join('data', 'index.js'))
+            local('git commit -m "added %s to index.js"' % muni_name)
+            local('git push origin master')
+            
+            print '*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*'
+            print 'The new/updated municipality data was added to data/index.js, and its topojson '
+            print 'gushim map will be loaded from the israel_gushim repository, and changes were '
+            print 'committed and pushed to origin. If more data needs to be in index.js, you can do '
+            print 'it now and push again. If modified after app was created you will need to deploy '
+            print 'the app again (explanation of valid fields in the index.js file can be found in '
+            print 'the repository\'s DEPLOYMENT.md).'
+            print '*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*'
 
 
 @task
