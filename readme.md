@@ -6,10 +6,11 @@ The code is Flask based, working with MongoDB as database, Uses redis to handle 
 
 ## Installation
 
-    git clone https://github.com/niryariv/opentaba-server.git
+    git clone git@github.com:niryariv/opentaba-server.git
     cd opentaba-server
     virtualenv .
     pip install -r requirements.txt
+    mkdir filecache
     python app.py
 
 Notice that if you are running this on a local dev machine you need to have mongodb running and listening in port 27017
