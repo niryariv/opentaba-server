@@ -77,7 +77,8 @@ def create_app(app_name, display_name):
     print '*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*'
     print 'You must add a new scheduled job now to scrape data during every night'
     print 'This cannot be done automatically, but it\'s not hard. Just click "Add Job..."'
-    print 'Command is: "python scrape.py -g all ; python worker.py" (without both "),'
+    print 'Command is: '
+    print '     python scrape.py -g all ; python worker.py'
     print '1X dyno, daily frequency, next run 04:00'
     print '*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*'
     local('heroku addons:open scheduler --app %s' % full_name)
