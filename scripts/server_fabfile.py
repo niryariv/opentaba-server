@@ -18,60 +18,60 @@ def _heroku_connect():
 
 
 @runs_once
-def _get_app_full_name(app_name):
-    return 'opentaba-server-%s' % app_name
+def _get_server_full_name(server_name):
+    return 'opentaba-server-%s' % server_name
 
 
-def _get_apps():
+def _get_servers():
     # get the defined remotes' names, without 'origin' or 'all_apps'
-    apps = ''.join(local('git remote', capture=True)).split('\n')
-    if 'origin' in apps:
-        apps.remove('origin')
-    if 'all_apps' in apps:
-        apps.remove('all_apps')
+    servers = ''.join(local('git remote', capture=True)).split('\n')
+    if 'origin' in servers:
+        servers.remove('origin')
+    if 'all_apps' in servers:
+        servers.remove('all_apps')
     
-    return apps
+    return servers
 
 
 @task
-def create_app(app_name, display_name):
+def create_server(server_name, display_name):
     """Create a new heroku app for a new municipality"""
     
     _heroku_connect()
-    full_name = _get_app_full_name(app_name)
+    full_name = _get_server_full_name(server_name)
     
     # start by adding the gushim to index.js
-    update_gushim_server(app_name, display_name)
+    update_gushim_server(server_name, display_name)
     
     # create a new heroku app with the needed addons
     local('heroku apps:create %s --addons scheduler:standard,memcachedcloud:25,mongohq:sandbox,redistogo:nano' % full_name)
     
     # get the new app's git url
-    app_info = ''.join(local('heroku apps:info -s --app %s' % full_name, capture=True)).split('\n')
-    app_git = None
-    for i in app_info:
+    server_info = ''.join(local('heroku apps:info -s --app %s' % full_name, capture=True)).split('\n')
+    server_git = None
+    for i in server_info:
         if i[0:7] == 'git_url':
-            app_git = i[8:]
+            server_git = i[8:]
             break
     
-    if not app_git:
-        delete_app(app_name, ignore_errors=True)
+    if not server_git:
+        delete_server(server_name, ignore_errors=True)
         abort('Something went wrong - couldn\'t parse heoku app\'s git url after creating it...')
     
     # add heroku app's repo as new remote
-    local('git remote add %s %s' % (app_name, app_git))
+    local('git remote add %s %s' % (server_name, server_git))
     
     # add new remote to 'all_apps' remote so it's easy to push to all of the together
     with settings(warn_only=True):
-        if local('git remote set-url --add all_apps %s' % app_git).failed:
+        if local('git remote set-url --add all_apps %s' % server_git).failed:
             # in case just adding the the remote fails it probably doesn't exist yet, so try to add it
-            if local('git remote add all_apps %s' % app_git).failed:
-                delete_app(app_name, ignore_errors=True)
+            if local('git remote add all_apps %s' % server_git).failed:
+                delete_server(server_name, ignore_errors=True)
                 abort('Could not add new remote to all_apps')
     
     # push code to the new app and create db and scrape for the first time
-    deploy_server(app_name)
-    renew_db(app_name)
+    deploy_server(server_name)
+    renew_db(server_name)
     
     # add scheduled job - can't be done automatically
     print '*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*'
@@ -85,26 +85,26 @@ def create_app(app_name, display_name):
 
 
 @task
-def delete_app(app_name, ignore_errors=False):
+def delete_server(server_name, ignore_errors=False):
     """Delete a heroku app"""
     
     _heroku_connect()
-    full_name = _get_app_full_name(app_name)
+    full_name = _get_server_full_name(server_name)
     
     with settings(warn_only=True):
         # try to find the app's git url if it is a remote here
-        app_git = None
+        server_git = None
         remotes = ''.join(local('git remote -v', capture=True)).split('\n')
         for r in remotes:
-            if r.startswith(app_name):
-                app_git = r.split('\t')[1].split(' ')[0]
+            if r.startswith(server_name):
+                server_git = r.split('\t')[1].split(' ')[0]
                 break
         
         # delete remotes for taget app
-        if app_git:
-            local('git remote set-url --delete all_apps %s' % app_git, capture=ignore_errors)
+        if server_git:
+            local('git remote set-url --delete all_apps %s' % server_git, capture=ignore_errors)
         
-        local('git remote remove %s' % app_name, capture=ignore_errors)
+        local('git remote remove %s' % server_name, capture=ignore_errors)
         
         # delete heroku app
         local('heroku apps:destroy --app %s --confirm %s' % (full_name, full_name), capture=ignore_errors)
@@ -183,10 +183,10 @@ def update_gushim_server(muni_name, display_name):
 
 
 @task
-def deploy_server(app_name):
+def deploy_server(server_name):
     """Deploy changes to a certain heroku app"""
     
-    local('git push %s master' % app_name)
+    local('git push %s master' % server_name)
 
 
 @task
@@ -197,31 +197,31 @@ def deploy_server_all():
 
 
 @task
-def create_db(app_name):
+def create_db(server_name):
     """Run the create_db script file on a certain heroku app"""
     
     _heroku_connect()
-    full_name = _get_app_full_name(app_name)
+    full_name = _get_server_full_name(server_name)
     
-    local('heroku run "python tools/create_db.py --force -m %s" --app %s' % (app_name, full_name))
+    local('heroku run "python tools/create_db.py --force -m %s" --app %s' % (server_name, full_name))
 
 
 @task
-def update_db(app_name):
+def update_db(server_name):
     """Run the update_db script file on a certain heroku app"""
     
     _heroku_connect()
-    full_name = _get_app_full_name(app_name)
+    full_name = _get_server_full_name(server_name)
     
-    local('heroku run "python tools/update_db.py --force -m %s" --app %s' % (app_name, full_name))
+    local('heroku run "python tools/update_db.py --force -m %s" --app %s' % (server_name, full_name))
 
 
 @task
-def scrape_all(app_name, show_output=False):
+def scrape_all(server_name, show_output=False):
     """Scrape all gushim on a certain heroku app"""
     
     _heroku_connect()
-    full_name = _get_app_full_name(app_name)
+    full_name = _get_server_full_name(server_name)
     
     if show_output:
         local('heroku run "python scrape.py -g all; python worker.py" --app %s' % full_name)
@@ -230,32 +230,32 @@ def scrape_all(app_name, show_output=False):
 
 
 @task
-def renew_db(app_name):
+def renew_db(server_name):
     """Run the create_db script file and scrape all gushim on a certain heroku app"""
     
-    create_db(app_name)
-    scrape_all(app_name)
+    create_db(server_name)
+    scrape_all(server_name)
 
 
 @task
 def renew_db_all():
     """Run the create_db script file and scrape all gushim on all heroku apps"""
     
-    for a in _get_apps():
+    for a in _get_servers():
         renew_db(a)
 
 
 @task
-def refresh_db(app_name):
+def refresh_db(server_name):
     """Run the update_db script file and scrape all gushim on a certain heroku app"""
     
-    update_db(app_name)
-    scrape_all(app_name)
+    update_db(server_name)
+    scrape_all(server_name)
 
 
 @task
 def refresh_db_all():
     """Run the update_db script file and scrape all gushim on all heroku apps"""
     
-    for a in _get_apps():
+    for a in _get_servers():
         update_db(a)
