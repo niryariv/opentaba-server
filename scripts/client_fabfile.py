@@ -66,6 +66,32 @@ def _get_muni_center(features):
     return [eval('{:.6f}'.format(sum_y / count)), eval('{:.6f}'.format(sum_x / count))]
 
 
+def _get_muni_bounds(features):
+    """
+    Get the bounds for the municipality - south-west point and north-east point
+    """
+    
+    min_x = 180
+    max_x = -180
+    min_y = 180
+    max_y = -180
+    
+    for f in features:
+        for cgroup in f['geometry']['coordinates']:
+            for coord in cgroup:
+                if coord[0] < min_x:
+                    min_x = coord[0]
+                if coord[0] > max_x:
+                    max_x = coord[0]
+                
+                if coord[1] < min_y:
+                    min_y = coord[1]
+                if coord[1] > max_y:
+                    max_y = coord[1]
+
+    return [[eval('{:.6f}'.format(min_y)), eval('{:.6f}'.format(min_x))], [eval('{:.6f}'.format(max_y)), eval('{:.6f}'.format(max_x))]]
+
+
 @task
 def create_client(client_name, display_name):
     """Create a new sub-site for a new municipality"""
@@ -159,6 +185,7 @@ def update_gushim_client(muni_name, display_name=''):
         # update the display name and center of the municipality's entry
         new_index_json[muni_name]['display'] = display_name
         new_index_json[muni_name]['center'] = _get_muni_center(geojson_gush_map['features'])
+        new_index_json[muni_name]['bounds'] = _get_muni_bounds(geojson_gush_map['features'])
         
         # don't try to add, commit etc. if no changes were made
         if dumps(new_index_json) != dumps(original_index_json):
