@@ -2,32 +2,13 @@
 fab file for managing opentaba-server heroku apps
 """
 
-from github import Github, Repository
 from fabric.api import *
-from getpass import getpass
 from json import loads, dumps
 import os
 from copy import deepcopy
+from github import Repository
 
-from common import _download_gush_map
-
-
-@runs_once
-def _github_connect():
-    #  connect to github only once per run
-    username = prompt('Github user: ')
-    password = getpass('Github password: ')
-    
-    try:
-        u = Github(username, password).get_user()
-        
-        # this is just so PyGithub tries to authorize now and not when someone actually wants
-        # to do something like create or delete a repo
-        i = u.id
-    except:
-        abort('Could not gain Github authorization')
-    
-    return u
+from common import _download_gush_map, _github_connect
 
 
 @runs_once
