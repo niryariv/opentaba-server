@@ -16,6 +16,14 @@ def _get_repo_name(client_name):
     return 'opentaba-client-%s' % client_name
 
 
+def _is_repo_name(name):
+    return name.startswith('opentaba-client-%s')
+
+
+def _get_muni_from_repo_name(repo_name):
+    return repo_name[16:]
+
+
 def _get_clients():
     # get the defined remotes' names, without 'origin' or 'all_sites'
     clients = ''.join(local('git remote', capture=True)).split('\n')
@@ -242,3 +250,126 @@ def deploy_client_all():
         # go over the remotes and deploy them, thus making sure to update the CNAME after destroying their data
         for client in _get_clients():
             deploy_client(client)
+
+
+@task
+def create_client_pull(muni_name, display_name):
+    """Create a new opentaba-client copy, to be updated using a local copy and pull"""
+    
+    # first time running the pull task - create the 'municipalities' directory
+    if not os.path.exists(os.path.join('..', 'municipalities')):
+        os.makedirs(os.path.join('..', 'municipalities'))
+    
+    repo_name = _get_repo_name(muni_name)
+    
+    # make sure a local repository of the municipality doesn't exist yet
+    # if it does the user did something weird and should review stuff and fix
+    if os.path.exists(os.path.join('..', 'municipalities', repo_name)):
+        abort('%s seems to already exist... (at least locally)' % repo_name)
+    else:
+        with lcd(os.path.join('..', 'municipalities')):
+            g = _github_connect()
+            
+            # start by adding the gushim to index.js
+            update_gushim_client(muni_name, display_name)
+            
+            # create a new repository for the new municipality
+            try:
+                repo = g.create_repo(repo_name, has_issues=False, has_wiki=False, has_downloads=False, auto_init=False)
+            except:
+                abort('Failed to create new github repository...')
+            
+            # clone the new repository
+            local('git clone %s' % repo.ssh_url)
+            
+            with lcd(repo_name):
+                # add core as remote and fetch from master to gh-pages
+                local('git remote add upstream https://github.com/niryariv/opentaba-client.git')
+                local('git fetch upstream master:gh-pages')
+                local('git checkout gh-pages')
+                
+                # add CNAME
+                local('echo %s.opentaba.info > CNAME' % muni_name)
+                
+                # add, commit, push new CNAME
+                local('git add CNAME')
+                local('git add index.html')
+                local('git commit -m "personalized for %s"' % muni_name)
+                local('git push origin gh-pages')
+            
+        print '*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*'
+        print 'Now you need to manually add the new hostname (subdomain)'
+        print 'to point to %s.opentaba.info' % muni_name
+        print '*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*'
+
+
+@task
+def delete_client_pull(muni_name, ignore_errors=False):
+    """Delete a municipality's client repository"""
+    
+    g = _github_connect()
+    repo_name = _get_repo_name(muni_name)
+    
+    with settings(warn_only=True):
+        # delete the github repository
+        try:
+            repo = g.get_repo(repo_name)
+            repo.delete()
+        except:
+            if not ignore_errors:
+                abort('Failed to delete github repository...')
+        
+        # delete the local repository if it exists
+        if os.path.exists(os.path.join('..', 'municipalities', repo_name)):
+            local('rm -rf %s', os.path.join('..', 'municipalities', repo_name))
+
+
+@task
+def deploy_client_pull(muni_name):
+    """Deploy updates to specific municipality's opentaba-client copy"""
+    
+    repo_name = _get_repo_name(muni_name)
+    
+    # if the local repo doesn't exist create it
+    if not os.path.exists(os.path.join('..', 'municipalities', repo_name)):
+        _get_client_pull_repo(muni_name)
+    
+    # perform fetch-merge-push
+    with lcd(os.path.join('..', 'municipalities', repo_name)):
+        local('git fetch upstream master')
+        local('git merge upstream/master --no-edit')
+        local('git push origin gh-pages')
+
+
+@task
+def deploy_client_pull_all():
+    """Deploy updates to all opentaba-client municipality copies"""
+    
+    g = _github_connect()
+    
+    # go over the organization's repositories, and the ones that match a 
+    # a client fork syntax should be deployed to
+    for r in g.get_repos():
+        if _is_repo_name(r.name):
+            deploy_client_pull(_get_muni_from_repo_name(r.name));
+
+
+def _get_client_pull_repo(muni_name):
+    repo_name = _get_repo_name(muni_name)
+    g = _github_connect()
+    
+    # try to find the repository on github
+    try:
+        repo = g.get_repo(repo_name)
+    except:
+        abort('The municipality does not have a repository on Github')
+    
+    # delete the local repository if it exists
+    if os.path.exists(os.path.join('..', 'municipalities', repo_name)):
+        local('rm -rf %s', os.path.join('..', 'municipalities', repo_name))
+    
+    # clone the repository from github and add an upstream remote
+    with lcd(os.path.join('..', 'municipalities')):
+        local('git clone %s' % repo_name)
+        with lcd(repo_name):
+            local('git remote add upstream https://github.com/niryariv/opentaba-client.git')

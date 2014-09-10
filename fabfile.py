@@ -7,6 +7,7 @@ from fabric.api import prompt, task
 
 
 from scripts.client_fabfile import create_client, delete_client, update_gushim_client, deploy_client, deploy_client_all
+from scripts.client_fabfile import create_client_pull, delete_client_pull, deploy_client_pull, deploy_client_pull_all
 
 from scripts.client_dummy_fabfile import create_dummy, delete_dummy
 
