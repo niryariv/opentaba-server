@@ -173,7 +173,7 @@ def get_plans(gush_id):
 def atom_feed():
     if 'MUNICIPALITY_NAME' in os.environ.keys():
         title = u'תב"ע פתוחה - %s' % os.environ['MUNICIPALITY_NAME']
-    else
+    else:
         title = u'תב"ע פתוחה'
     
     return _plans_query_to_atom_feed(request, limit=20, feed_title=title).get_response()

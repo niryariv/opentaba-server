@@ -54,20 +54,3 @@ def test_gush_feed_sane_multi():
     
     # And check that it has at least one entry
     assert_true(tree.xpath('count(//*[local-name() = "entry"])') > 0)
-
-
-def test_city_plan_feed():
-    response = testapp.get('/jerusalem/plans.atom')
-    eq_(response.status_code, 200)
-
-    # Check that the XML tree is parsable and is an ATOM feed
-    tree = etree.fromstring(response.data)
-    eq_("{http://www.w3.org/2005/Atom}feed", tree.tag)
-    
-    # And check that it has at least one entry
-    assert_true(tree.xpath('count(//*[local-name() = "entry"])') > 0)
-    
-
-def test_invalid_city_plan_feed():
-    response = testapp.get('/idonotexist/plans.atom')
-    eq_(response.status_code, 404)
