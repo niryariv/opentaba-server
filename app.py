@@ -172,7 +172,7 @@ def get_plans(gush_id):
 @cached(app, timeout=3600)
 def atom_feed():
     if 'MUNICIPALITY_NAME' in os.environ.keys():
-        title = u'תב"ע פתוחה - %s' % os.environ['MUNICIPALITY_NAME']
+        title = u'תב"ע פתוחה - %s' % os.environ['MUNICIPALITY_NAME'].decode('utf-8')
     else:
         title = u'תב"ע פתוחה'
     
