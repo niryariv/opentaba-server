@@ -168,6 +168,9 @@ def update_gushim_client(muni_name, display_name=''):
     with lcd(os.path.join('..', 'opentaba-client')):
         # download the online gush map
         geojson_gush_map = _download_gush_map(muni_name)
+        
+        # make sure we're using the master branch
+        local('git checkout master')
     
         # load the current municipalities' index dictionary
         with open(os.path.join('..', 'opentaba-client', 'data', 'index.js')) as index_data:
@@ -188,7 +191,7 @@ def update_gushim_client(muni_name, display_name=''):
         new_index_json[muni_name]['bounds'] = _get_muni_bounds(geojson_gush_map['features'])
         
         # don't try to add, commit etc. if no changes were made
-        if dumps(new_index_json) != dumps(original_index_json):
+        if dumps(new_index_json) == dumps(original_index_json):
             warn('No new data was found in the downloaded gush map. No changes were made to data/index.js')
         else:
             # write back the index.js file
@@ -204,12 +207,13 @@ def update_gushim_client(muni_name, display_name=''):
             local('git push origin master')
             
             print '*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*'
-            print 'The new/updated municipality data was added to data/index.js, and its topojson '
+            print 'The new/updated municipality data was added to data/index.js, its topojson '
             print 'gushim map will be loaded from the israel_gushim repository, and changes were '
-            print 'committed and pushed to origin. If more data needs to be in index.js, you can do '
-            print 'it now and push again. If modified after app was created you will need to deploy '
-            print 'the app again (explanation of valid fields in the index.js file can be found in '
-            print 'the repository\'s DEPLOYMENT.md).'
+            print 'committed and pushed to origin. If more data needs to be in index.js, you can '
+            print 'do it now and push again. If using full copy methodology (not dummy) and '
+            print 'modifying the file after app was created you will need to deploy the app again '
+            print '(explanation of valid fields in the index.js file can be found in the client '
+            print 'repository\'s DEPLOYMENT.md'
             print '*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*'
 
 

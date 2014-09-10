@@ -9,6 +9,7 @@ import os
 import codecs
 
 from common import _github_connect
+from client_fabfile import update_gushim_client
 
 
 @runs_once
@@ -28,6 +29,9 @@ def create_dummy(muni_name, display_name):
         repo = g.create_repo(repo_name, has_issues=False, has_wiki=False, has_downloads=False, auto_init=False)
     except:
         abort('Failed to create new github repository...')
+    
+    # update the index.js file
+    update_gushim_client(muni_name, display_name)
     
     with lcd('..'):
         local('git clone %s tmp-%s' % (repo.ssh_url, repo_name))
@@ -74,6 +78,8 @@ def create_dummy(muni_name, display_name):
 
 @task
 def delete_dummy(muni_name, ignore_errors=False):
+    """Delete a dummy fork repository"""
+    
     g = _github_connect()
     repo_name = _get_repo_name(muni_name)
     

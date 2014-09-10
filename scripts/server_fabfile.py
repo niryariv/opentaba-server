@@ -122,6 +122,9 @@ def update_gushim_server(muni_name, display_name):
     for geometry in gush_map['features']:
         gush_ids.append(geometry['properties']['Name'])
     
+    # make sure we're using the master branch
+    local('git checkout master')
+    
     # open and load the existing gushim dictionary from tools/gushim.py
     with open(os.path.join('tools', 'gushim.py')) as gushim_data:
         existing_gushim = loads(gushim_data.read().replace('GUSHIM = ', ''))
