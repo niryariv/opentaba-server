@@ -46,6 +46,9 @@ def create_server(server_name, display_name):
     # create a new heroku app with the needed addons
     local('heroku apps:create %s --addons scheduler:standard,memcachedcloud:25,mongohq:sandbox,redistogo:nano' % full_name)
     
+    # set the server's display name
+    local('heroku config:set MUNICIPALITY_NAME=%s --app %s' % (display_name, full_name))
+    
     # get the new app's git url
     server_info = ''.join(local('heroku apps:info -s --app %s' % full_name, capture=True)).split('\n')
     server_git = None

@@ -171,20 +171,12 @@ def get_plans(gush_id):
 @app.route('/plans.atom')
 @cached(app, timeout=3600)
 def atom_feed():
-    return _plans_query_to_atom_feed(request, limit=20, feed_title=u'תב״ע פתוחה').get_response()
-
-
-@app.route('/<city>/plans.atom')
-@cached(app, timeout=3600)
-def atom_feed_city(city):
-    if city not in GUSHIM.keys():
-        abort(404)
+    if 'MUNICIPALITY_NAME' in os.environ.keys():
+        title = u'תב"ע פתוחה - %s' % os.environ['MUNICIPALITY_NAME']
+    else
+        title = u'תב"ע פתוחה'
     
-    if len(GUSHIM[city]['list']) > 1:
-        query = {'gushim': {'$in': GUSHIM[city]['list']}}
-    else:
-        query = {'gushim': GUSHIM[city]['list'][0]}
-    return _plans_query_to_atom_feed(request, query, limit=20, feed_title=u'תב״ע פתוחה - ' + GUSHIM[city]['display'].decode('unicode-escape')).get_response()
+    return _plans_query_to_atom_feed(request, limit=20, feed_title=title).get_response()
 
 
 @app.route('/gush/<gushim>/plans.atom')
