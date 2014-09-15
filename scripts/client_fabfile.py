@@ -321,7 +321,7 @@ def delete_client_pull(muni_name, ignore_errors=False):
         
         # delete the local repository if it exists
         if os.path.exists(os.path.join('..', 'municipalities', repo_name)):
-            local('rm -rf %s', os.path.join('..', 'municipalities', repo_name))
+            local('rm -rf %s' % os.path.join('..', 'municipalities', repo_name))
 
 
 @task
