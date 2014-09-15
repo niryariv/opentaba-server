@@ -199,7 +199,7 @@ def update_gushim_client(muni_name, display_name=''):
         new_index_json[muni_name]['bounds'] = _get_muni_bounds(geojson_gush_map['features'])
         
         # don't try to add, commit etc. if no changes were made
-        if dumps(new_index_json) == dumps(original_index_json):
+        if dumps(new_index_json, sort_keys=True) == dumps(original_index_json, sort_keys=True):
             warn('No new data was found in the downloaded gush map. No changes were made to data/index.js')
         else:
             # write back the index.js file
