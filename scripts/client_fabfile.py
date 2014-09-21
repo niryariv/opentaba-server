@@ -100,6 +100,14 @@ def add_muni(muni_name, display_name=''):
             local('git commit -m "added %s to index.js"' % muni_name)
             local('git push origin master')
             
+            # merge into gh-pages branch
+            local('git checkout gh-pages')
+            local('git merge master --no-edit')
+            local('git push origin gh-pages')
+            
+            # back to master for work
+            local('git checkout master')
+            
             print '*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*'
             print 'The new/updated municipality data was added to data/index.js, its topojson '
             print 'gushim map will be loaded from the israel_gushim repository, and changes were '
