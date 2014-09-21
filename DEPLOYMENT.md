@@ -28,15 +28,9 @@ To deploy a scraper-server app for a brand new municipality, follow these steps:
 To deploy a website for a brand new municipality, follow these steps:
   1. Make sure both the geojson and topojson files with the name of the municipality
      have been added to [this repository](http://github.com/niryariv/israel_gushim)
-  2. Add the data about the new municipality to the repository, then create the 
-     new site. Run:
-     `fab create_site:givataiim,"גבעתיים"`
+  2. Run: `fab add_muni:givataiim,"גבעתיים"`
   3. All changes are automatically made, committed and pushed. If you need to add
      more settings to the data/index.js, you can do it after and you will need to
-     deploy the new municipality again (`fab -f client_fabfile.py deploy:givataiim`)
+     commit and push the file again.
      All changes to data/index.js must be done in compliance to the [Municipality 
      Index File syntax](http://github.com/niryariv/opentaba-client/blob/master/DEPLOYMENT.md#municipality-index-file).
-  4. Add a new hostname (subdomain) in your domain management control panel. Set
-     the name to your municipality's name (givataiim for this example), record
-     type to "CNAME (Alias)" and url to "<your-github-account>.github.io."ץ
-     It will take a few minutes to make the link (DNS and Github).
