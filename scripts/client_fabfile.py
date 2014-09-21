@@ -57,7 +57,7 @@ def _get_muni_bounds(features):
 
 @task
 def add_muni(muni_name, display_name=''):
-    """Add an entry for a new municipality or update an existing one to the data/index.js file with the required data"""
+    """Add an entry for a new municipality or update an existing one to the munis.js file with the required data"""
     
     with lcd(os.path.join('..', 'opentaba-client')):
         # download the online gush map
@@ -67,7 +67,7 @@ def add_muni(muni_name, display_name=''):
         local('git checkout master')
     
         # load the current municipalities' index dictionary
-        with open(os.path.join('..', 'opentaba-client', 'data', 'index.js')) as index_data:
+        with open(os.path.join('..', 'opentaba-client', 'munis.js')) as index_data:
             original_index_json = loads(index_data.read().replace('var municipalities = ', '').rstrip('\n').rstrip(';'))
         
         new_index_json = deepcopy(original_index_json)
@@ -86,18 +86,18 @@ def add_muni(muni_name, display_name=''):
         
         # don't try to add, commit etc. if no changes were made
         if dumps(new_index_json, sort_keys=True) == dumps(original_index_json, sort_keys=True):
-            warn('No new data was found in the downloaded gush map. No changes were made to data/index.js')
+            warn('No new data was found in the downloaded gush map. No changes were made to munis.js')
         else:
-            # write back the index.js file
-            out = open(os.path.join('..', 'opentaba-client', 'data', 'index.js'), 'w')
+            # write back the munis.js file
+            out = open(os.path.join('..', 'opentaba-client', 'munis.js'), 'w')
             out.write('var municipalities = ' + dumps(new_index_json, sort_keys=True, indent=4, separators=(',', ': ')) + ';')
             out.flush()
             os.fsync(out.fileno())
             out.close()
     
             # commit and push to origin
-            local('git add %s' % os.path.join('data', 'index.js'))
-            local('git commit -m "added %s to index.js"' % muni_name)
+            local('git add munis.js')
+            local('git commit -m "added %s to munis.js"' % muni_name)
             local('git push origin master')
             
             # merge into gh-pages branch
@@ -109,9 +109,9 @@ def add_muni(muni_name, display_name=''):
             local('git checkout master')
             
             print '*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*'
-            print 'The new/updated municipality data was added to data/index.js, its topojson '
+            print 'The new/updated municipality data was added to munis.js, its topojson '
             print 'gushim map will be loaded from the israel_gushim repository, and changes were '
-            print 'committed and pushed to origin. If more data needs to be in index.js, you can '
+            print 'committed and pushed to origin. If more data needs to be in munis.js, you can '
             print 'do it now and push again. The municipality\'s site is now live at:'
             print 'http://%s.opentaba.info/' % muni_name
             print '*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*'

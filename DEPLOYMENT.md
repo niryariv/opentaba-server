@@ -30,7 +30,7 @@ To deploy a website for a brand new municipality, follow these steps:
      have been added to [this repository](http://github.com/niryariv/israel_gushim)
   2. Run: `fab add_muni:givataiim,"גבעתיים"`
   3. All changes are automatically made, committed and pushed. If you need to add
-     more settings to the data/index.js, you can do it after and you will need to
+     more settings to the munis.js, you can do it after and you will need to
      commit and push the file again.
-     All changes to data/index.js must be done in compliance to the [Municipality 
+     All changes to munis.js must be done in compliance to the [Municipality 
      Index File syntax](http://github.com/niryariv/opentaba-client/blob/master/DEPLOYMENT.md#municipality-index-file).

@@ -40,7 +40,7 @@ def create_server(server_name, display_name):
     _heroku_connect()
     full_name = _get_server_full_name(server_name)
     
-    # start by adding the gushim to index.js
+    # start by adding the gushim to gushim.py
     update_gushim_server(server_name, display_name)
     
     # create a new heroku app with the needed addons
