@@ -52,7 +52,7 @@ def _get_muni_bounds(features):
                 if coord[1] > max_y:
                     max_y = coord[1]
 
-    return [[eval('{:.6f}'.format(min_y - 0.2)), eval('{:.6f}'.format(min_x - 0.2))], [eval('{:.6f}'.format(max_y + 0.2)), eval('{:.6f}'.format(max_x + 0.2))]]
+    return [[eval('{:.6f}'.format(min_y)), eval('{:.6f}'.format(min_x))], [eval('{:.6f}'.format(max_y)), eval('{:.6f}'.format(max_x))]]
 
 
 @task
