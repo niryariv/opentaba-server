@@ -17,20 +17,31 @@ def _heroku_connect():
     local('heroku auth:whoami')
 
 
-@runs_once
 def _get_server_full_name(server_name):
     return 'opentaba-server-%s' % server_name
 
 
-def _get_servers():
-    # get the defined remotes' names, without 'origin' or 'all_apps'
-    servers = ''.join(local('git remote', capture=True)).split('\n')
-    if 'origin' in servers:
-        servers.remove('origin')
-    if 'all_apps' in servers:
-        servers.remove('all_apps')
+def _is_server_full_name(name):
+    return name.startswith('opentaba-server-')
+
+
+def _get_muni_name(server_full_name):
+    if _is_server_full_name(server_full_name):
+        return server_full_name[16:]
     
-    return servers
+    return ''
+
+
+def _get_servers():
+    _heroku_connect()
+    
+    # get all current user's heroku apps, and return a list of the ones who match a server's name
+    apps = ''.join(local('heroku list', capture=True)).split('\n')
+    
+    # filter out the not-servers
+    apps = [app for app in apps if _is_server_full_name(app)]
+    
+    return apps
 
 
 @task
@@ -48,29 +59,6 @@ def create_server(server_name, display_name):
     
     # set the server's display name
     local('heroku config:set MUNICIPALITY_NAME="%s" --app %s' % (display_name, full_name))
-    
-    # get the new app's git url
-    server_info = ''.join(local('heroku apps:info -s --app %s' % full_name, capture=True)).split('\n')
-    server_git = None
-    for i in server_info:
-        if i[0:7] == 'git_url':
-            server_git = i[8:]
-            break
-    
-    if not server_git:
-        delete_server(server_name, ignore_errors=True)
-        abort('Something went wrong - couldn\'t parse heoku app\'s git url after creating it...')
-    
-    # add heroku app's repo as new remote
-    local('git remote add %s %s' % (server_name, server_git))
-    
-    # add new remote to 'all_apps' remote so it's easy to push to all of the together
-    with settings(warn_only=True):
-        if local('git remote set-url --add all_apps %s' % server_git).failed:
-            # in case just adding the the remote fails it probably doesn't exist yet, so try to add it
-            if local('git remote add all_apps %s' % server_git).failed:
-                delete_server(server_name, ignore_errors=True)
-                abort('Could not add new remote to all_apps')
     
     # push code to the new app and create db and scrape for the first time
     deploy_server(server_name)
@@ -95,20 +83,6 @@ def delete_server(server_name, ignore_errors=False):
     full_name = _get_server_full_name(server_name)
     
     with settings(warn_only=True):
-        # try to find the app's git url if it is a remote here
-        server_git = None
-        remotes = ''.join(local('git remote -v', capture=True)).split('\n')
-        for r in remotes:
-            if r.startswith(server_name):
-                server_git = r.split('\t')[1].split(' ')[0]
-                break
-        
-        # delete remotes for taget app
-        if server_git:
-            local('git remote set-url --delete all_apps %s' % server_git, capture=ignore_errors)
-        
-        local('git remote remove %s' % server_name, capture=ignore_errors)
-        
         # delete heroku app
         local('heroku apps:destroy --app %s --confirm %s' % (full_name, full_name), capture=ignore_errors)
 
@@ -192,14 +166,17 @@ def update_gushim_server(muni_name, display_name):
 def deploy_server(server_name):
     """Deploy changes to a certain heroku app"""
     
-    local('git push %s master' % server_name)
+    print 'Deploying app: %s' % _get_server_full_name(server_name)
+    local('git push git@heroku.com:%s.git master' % _get_server_full_name(server_name))
 
 
 @task
 def deploy_server_all():
     """Deploy changes to all heroku apps"""
     
-    local('git push all_apps master')
+    for server in _get_servers():
+        print 'Deploying app: %s...' % server
+        local('git push git@heroku.com:%s.git master' % server)
 
 
 @task
@@ -207,9 +184,8 @@ def create_db(server_name):
     """Run the create_db script file on a certain heroku app"""
     
     _heroku_connect()
-    full_name = _get_server_full_name(server_name)
     
-    local('heroku run "python tools/create_db.py --force -m %s" --app %s' % (server_name, full_name))
+    local('heroku run "python tools/create_db.py --force -m %s" --app %s' % (server_name, _get_server_full_name(server_name)))
 
 
 @task
@@ -217,13 +193,12 @@ def update_db(server_name):
     """Run the update_db script file on a certain heroku app"""
     
     _heroku_connect()
-    full_name = _get_server_full_name(server_name)
     
-    local('heroku run "python tools/update_db.py --force -m %s" --app %s' % (server_name, full_name))
+    local('heroku run "python tools/update_db.py --force -m %s" --app %s' % (server_name, _get_server_full_name(server_name)))
 
 
 @task
-def scrape_all(server_name, show_output=False):
+def scrape(server_name, show_output=False):
     """Scrape all gushim on a certain heroku app"""
     
     _heroku_connect()
@@ -240,15 +215,15 @@ def renew_db(server_name):
     """Run the create_db script file and scrape all gushim on a certain heroku app"""
     
     create_db(server_name)
-    scrape_all(server_name)
+    scrape(server_name)
 
 
 @task
 def renew_db_all():
     """Run the create_db script file and scrape all gushim on all heroku apps"""
     
-    for a in _get_servers():
-        renew_db(a)
+    for server in _get_servers():
+        renew_db(_get_muni_name(server))
 
 
 @task
@@ -256,12 +231,12 @@ def refresh_db(server_name):
     """Run the update_db script file and scrape all gushim on a certain heroku app"""
     
     update_db(server_name)
-    scrape_all(server_name)
+    scrape(server_name)
 
 
 @task
 def refresh_db_all():
     """Run the update_db script file and scrape all gushim on all heroku apps"""
     
-    for a in _get_servers():
-        update_db(a)
+    for server in _get_servers():
+        refresh_db(_get_muni_name(server))
