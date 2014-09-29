@@ -22,35 +22,29 @@ app.debug = RUNNING_LOCAL # if we're local, keep debug on
 
 #### Helpers ####
 
-def _to_json(mongo_obj):
-    """
-    convert dictionary to JSON. json_util.default adds automatic mongoDB result support
-    """
-    return json.dumps(mongo_obj, ensure_ascii=False, default=json_util.default)
+def _get_plans(count=1000, query={}):
+    return list(db.plans.find(query, limit=count).sort(
+        [("year", pymongo.DESCENDING), ("month", pymongo.DESCENDING), ("day", pymongo.DESCENDING)]))
 
 
-def _resp(data):
-    r = make_response(_to_json(data))
+def _get_gushim(query={}, fields=None):
+    return list(db.gushim.find(query, fields=fields))
+
+
+def _create_response_json(data):
+    """
+    Convert dictionary to JSON. json_util.default adds automatic mongoDB result support
+    """
+    r = make_response(json.dumps(data, ensure_ascii=False, default=json_util.default))
     r.headers['Access-Control-Allow-Origin'] = "*"
     r.headers['Content-Type'] = "application/json; charset=utf-8"
     return r
 
 
-def _plans_query_to_atom_feed(request, query={}, limit=0, feed_title=''):
+def _create_response_atom_feed(request, plans, feed_title=''):
     """
     Create an atom feed of plans fetched from the DB based on an optional query
     """
-    plans = db.plans.find(query, limit=1000).sort(
-        [("year", pymongo.DESCENDING), ("month", pymongo.DESCENDING), ("day", pymongo.DESCENDING)])
-    
-    # remove duplicate plans (ie when a plan is in >1 gush)
-    seen = set()
-    plans = [p for p in plans if p['number'] not in seen and not seen.add(p['number'])]
-
-    # of the remains, take the latest N
-    if limit > 0:
-        plans = plans[:limit]
-
     feed = AtomFeed(feed_title, feed_url=request.url, url=request.url_root)
 
     for p in plans:
@@ -111,7 +105,7 @@ def get_gushim():
     get gush_id metadata
     """
     detailed = request.args.get('detailed', '') == 'true'
-    gushim = db.gushim.find(fields={'gush_id': True, 'last_checked_at': True, '_id': False})
+    gushim = _get_gushim(fields={'gush_id': True, 'last_checked_at': True, '_id': False})
     if detailed:
         # Flatten list of gushim into a dict
         g_flat = dict((g['gush_id'], {"gush_id": g['gush_id'],
@@ -138,7 +132,7 @@ def get_gushim():
         # De-flatten our dict
         gushim = g_flat.values()
 
-    return _resp(list(gushim))
+    return _create_response_json(gushim)
 
 
 @app.route('/gush/<gush_id>.json')
@@ -147,10 +141,10 @@ def get_gush(gush_id):
     """
     get gush_id metadata
     """
-    gush = db.gushim.find_one({"gush_id": gush_id})
-    if gush is None:
+    gush = _get_gushim(query={"gush_id": gush_id})
+    if gush is None or len(gush) == 0:
         abort(404)
-    return _resp(gush)
+    return _create_response_json(gush[0])
 
 
 @app.route('/gush/<gush_id>/plans.json')
@@ -159,13 +153,20 @@ def get_plans(gush_id):
     """
     get plans from gush_id
     """
-    if db.gushim.find_one({"gush_id": gush_id}) is None:
+    gush = _get_gushim(query={"gush_id": gush_id})
+    if gush is None or len(gush) == 0:
         abort(404)
 
-    plans = db.plans.find({"gushim": gush_id}).sort(
-        [("year", pymongo.DESCENDING), ("month", pymongo.DESCENDING), ("day", pymongo.DESCENDING)])
+    return _create_response_json(_get_plans(query={"gushim": gush_id}))
 
-    return _resp(list(plans))
+
+@app.route('/recent.json')
+@cached(app, timeout=3600)
+def get_recent_plans():
+    """
+    Get the 10 most recent plans to show on the site's home page
+    """
+    return _create_response_json(_get_plans(count=10))
 
 
 @app.route('/plans.atom')
@@ -176,7 +177,7 @@ def atom_feed():
     else:
         title = u'תב"ע פתוחה'
     
-    return _plans_query_to_atom_feed(request, limit=20, feed_title=title).get_response()
+    return _create_response_atom_feed(request, _get_plans(count=20), feed_title=title).get_response()
 
 
 @app.route('/gush/<gushim>/plans.atom')
@@ -188,10 +189,10 @@ def atom_feed_gush(gushim):
     """
     gushim = gushim.split(',')
     if len(gushim) > 1:
-        query = {'gushim': {'$in': gushim}}
+        gushim_query = {'gushim': {'$in': gushim}}
     else:
-        query = {'gushim': gushim[0]}
-    return _plans_query_to_atom_feed(request, query, feed_title=u'תב״ע פתוחה - גוש %s' % ', '.join(gushim)).get_response()
+        gushim_query = {'gushim': gushim[0]}
+    return _create_response_atom_feed(request, _get_plans(query=gushim_query), feed_title=u'תב״ע פתוחה - גוש %s' % ', '.join(gushim)).get_response()
 
 
 @app.route('/plan/<plan_id>/mavat')
@@ -202,18 +203,18 @@ def redirect_to_mavat(plan_id):
     mavat website using an auto-sending form
     """
     try: 
-        plan = db.plans.find_one({'plan_id': int(plan_id)})
+        plans = _get_plans(count=1, query={'plan_id': int(plan_id)})
     except ValueError: # plan_id is not an int
         abort(400)
     except: # DB error
         abort(500)
     
-    if plan is None or plan['mavat_code'] == '':
+    if plans is None or len(plans) == 0 or plans[0]['mavat_code'] == '':
         abort(404)
     
     return ('<html><body>'
             '<form action="http://mavat.moin.gov.il/MavatPS/Forms/SV4.aspx?tid=4" method="post" name="redirect_form">'
-            '<input type="hidden" name="PL_ID" value="' + plan['mavat_code'] + '">'
+            '<input type="hidden" name="PL_ID" value="' + plans[0]['mavat_code'] + '">'
             '</form><script language="javascript">document.redirect_form.submit();</script></body></html>')
 
 
@@ -232,7 +233,7 @@ def wakeup():
     wake up Heroku dyno from idle. perhaps can if >1 dynos
     used as endpoint for a "wakeup" request when the client inits
     """
-    return _resp({'morning': 'good'})
+    return _create_response_json({'morning': 'good'})
 
 
 #### MAIN ####
