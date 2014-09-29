@@ -18,14 +18,20 @@ def _heroku_connect():
 
 
 def _get_server_full_name(server_name):
+    if server_name == 'jerusalem':
+        return 'opentaba-server'
+    
     return 'opentaba-server-%s' % server_name
 
 
 def _is_server_full_name(name):
-    return name.startswith('opentaba-server-')
+    return name == 'opentaba-server' or name.startswith('opentaba-server-')
 
 
 def _get_muni_name(server_full_name):
+    if server_full_name == 'opentaba-server':
+        return 'jerusalem'
+    
     if _is_server_full_name(server_full_name):
         return server_full_name[16:]
     
