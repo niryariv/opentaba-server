@@ -95,3 +95,11 @@ def test_api_wakeup():
     eq_(response.status_code, 200)
     eq_(response.mimetype, 'application/json')
     eq_(j, {"morning": "good"})
+
+
+def test_api_recent():
+    response = testapp.get('/recent.json')
+    j = json.loads(response.data)
+    eq_(response.status_code, 200)
+    eq_(response.mimetype, 'application/json')
+    eq_(len(j), 10)
