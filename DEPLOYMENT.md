@@ -1,38 +1,26 @@
-##Deploy a New Municipality
-(The examples use givataiim. You should change it to whatever municipality
+##Deploying a New Municipality
+(The examples use Holon. You should change it to whatever municipality
 you are deploying)
 
 ###Server
-To deploy a scraper-server app for a brand new municipality, follow these steps:
-  1. Make sure the geojson map file with the name of the municipality has 
-     been added to [this repository](http://github.com/niryariv/israel_gushim)
-  2. Add the new gush ids to the tools/gushim.py file, then create and configure 
-     the new Heroku app. This will also scrape the municipality's plans for the 
-     first time. Run:
-     `fab create_server:givataiim,"גבעתיים"`
+To deploy a server/database for a new municipality, follow these steps:
+  1. Make sure the GeoJSON map file with the name of the municipality has 
+     been added to the [map repository](http://github.com/niryariv/israel_gushim)
+  2. Run `fab create_server:holon,"חולון"`. This will add the new gush ids to the tools/gushim.py file, create & configure the new Heroku app / MongoDB, and finally run the scraper to get all municipality's plans. 
   3. When the task finishes running, a browser window (or tab) will be open with 
      the new app's scheduler dashboard. Add a new scheduled task with the 
-     command: "python scrape.py -g all ; python worker.py" (without both "), 
-     leave it at 1X dyno, set it to run daily and set the next run for 4:00 AM.
-  4. Scraping is being done in the background. Depending on how many gushim and 
-     plans your municipality has, this can take anywhere from about 15 minutes 
-     to a few hours. When it's done all plans will be scraped and your new server 
-     will be ready to work with.
+     command: `python scrape.py -g all ; python worker.py`. Do not change dyno settings.
+  4. Data scraping takes place in the background. Depending on how many plans the new municipality has, this can take anywhere from a few minutes to several hours.
   5. The display name for the municipality (as can be seen in the title of the 
-     plans atom feed) is set automatically by the fabric task. If you want to 
-     edit it, you just need to set the MUNICIPALITY_NAME environment variable 
-     of the heroku app like so: 
-     `heroku config:set MUNICIPALITY_NAME="גבעתיים" --app opentaba-server-givataiim`
+     plans Atom feed) is set in by the `fab create_server` (in the example above, "חולון". To edit it later, you'll need to set the MUNICIPALITY_NAME environment variable of the Heroku app, like so: 
+     `heroku config:set MUNICIPALITY_NAME="חולון רבתי" --app opentaba-server-holon`
 
 ###Client
-To deploy a website for a brand new municipality, follow these steps:
-  1. Make sure both the geojson and topojson files with the name of the municipality
-     have been added to [this repository](http://github.com/niryariv/israel_gushim)
-  2. Run: `fab create_client:givataiim,"גבעתיים"`
-  3. All changes are automatically made, committed and pushed. If you need to add
-     more settings to the munis.js, you can do it after and you will need to
-     commit and push the file again.
-     All changes to munis.js must be done in compliance to the [Municipality 
+Unlike the server side, the client uses the same code for all municipalities. Deploying a new municipality just means adding it's information to the `munis.js` file. 
+
+To deploy a new municipality, run: `fab create_client:holon,"חולון"` after the server was created. 
+
+To change client configuration, you can edit `munis.js` manually later on, according to the [Municipality 
      Index File syntax](http://github.com/niryariv/opentaba-client/blob/master/DEPLOYMENT.md#municipality-index-file).
 
 ##All Fabric Tasks
