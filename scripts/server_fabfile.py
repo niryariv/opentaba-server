@@ -17,11 +17,11 @@ def _heroku_connect():
     local('heroku auth:whoami')
 
 
-def _get_server_full_name(server_name):
-    if server_name == 'jerusalem':
+def _get_server_full_name(muni_name):
+    if muni_name == 'jerusalem':
         return 'opentaba-server'
     
-    return 'opentaba-server-%s' % server_name
+    return 'opentaba-server-%s' % muni_name
 
 
 def _is_server_full_name(name):
@@ -51,14 +51,14 @@ def _get_servers():
 
 
 @task
-def create_server(server_name, display_name):
+def create_server(muni_name, display_name):
     """Create a new heroku app for a new municipality"""
     
     _heroku_connect()
-    full_name = _get_server_full_name(server_name)
+    full_name = _get_server_full_name(muni_name)
     
     # start by adding the gushim to gushim.py
-    update_gushim_server(server_name, display_name)
+    update_gushim_server(muni_name)
     
     # create a new heroku app with the needed addons
     local('heroku apps:create %s --addons scheduler:standard,memcachedcloud:25,mongohq:sandbox,redistogo:nano' % full_name)
@@ -67,8 +67,8 @@ def create_server(server_name, display_name):
     local('heroku config:set MUNICIPALITY_NAME="%s" --app %s' % (display_name, full_name))
     
     # push code to the new app and create db and scrape for the first time
-    deploy_server(server_name)
-    renew_db(server_name)
+    deploy_server(muni_name)
+    renew_db(muni_name)
     
     # add scheduled job - can't be done automatically
     print '*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*'
@@ -82,11 +82,11 @@ def create_server(server_name, display_name):
 
 
 @task
-def delete_server(server_name, ignore_errors=False):
+def delete_server(muni_name, ignore_errors=False):
     """Delete a heroku app"""
     
     _heroku_connect()
-    full_name = _get_server_full_name(server_name)
+    full_name = _get_server_full_name(muni_name)
     
     with settings(warn_only=True):
         # delete heroku app
@@ -94,7 +94,7 @@ def delete_server(server_name, ignore_errors=False):
 
 
 @task
-def update_gushim_server(muni_name, display_name):
+def update_gushim_server(muni_name):
     """Add the gush ids from an existing online gush map to the tools/gushim.py file"""
     
     # download the online gush map
@@ -117,12 +117,6 @@ def update_gushim_server(muni_name, display_name):
         for eg in existing_gushim[muni_name]['list']:
             if eg in gush_ids:
                 gush_ids.remove(eg)
-    elif display_name == '':
-        abort('For new municipalities display name must be provided')
-    else:
-        existing_gushim[muni_name] = {'display':'', 'list':[]}
-    
-    existing_gushim[muni_name]['display'] = display_name
     
     # append the remaining gush ids list
     if len(gush_ids) == 0:
@@ -169,11 +163,11 @@ def update_gushim_server(muni_name, display_name):
 
 
 @task
-def deploy_server(server_name):
+def deploy_server(muni_name):
     """Deploy changes to a certain heroku app"""
     
-    print 'Deploying app: %s' % _get_server_full_name(server_name)
-    local('git push git@heroku.com:%s.git master' % _get_server_full_name(server_name))
+    print 'Deploying app: %s' % _get_server_full_name(muni_name)
+    local('git push git@heroku.com:%s.git master' % _get_server_full_name(muni_name))
 
 
 @task
@@ -186,29 +180,29 @@ def deploy_server_all():
 
 
 @task
-def create_db(server_name):
+def create_db(muni_name):
     """Run the create_db script file on a certain heroku app"""
     
     _heroku_connect()
     
-    local('heroku run "python tools/create_db.py --force -m %s" --app %s' % (server_name, _get_server_full_name(server_name)))
+    local('heroku run "python tools/create_db.py --force -m %s" --app %s' % (muni_name, _get_server_full_name(muni_name)))
 
 
 @task
-def update_db(server_name):
+def update_db(muni_name):
     """Run the update_db script file on a certain heroku app"""
     
     _heroku_connect()
     
-    local('heroku run "python tools/update_db.py --force -m %s" --app %s' % (server_name, _get_server_full_name(server_name)))
+    local('heroku run "python tools/update_db.py --force -m %s" --app %s' % (muni_name, _get_server_full_name(muni_name)))
 
 
 @task
-def scrape(server_name, show_output=False):
+def scrape(muni_name, show_output=False):
     """Scrape all gushim on a certain heroku app"""
     
     _heroku_connect()
-    full_name = _get_server_full_name(server_name)
+    full_name = _get_server_full_name(muni_name)
     
     if show_output:
         local('heroku run "python scrape.py -g all; python worker.py" --app %s' % full_name)
@@ -217,11 +211,11 @@ def scrape(server_name, show_output=False):
 
 
 @task
-def renew_db(server_name):
+def renew_db(muni_name):
     """Run the create_db script file and scrape all gushim on a certain heroku app"""
     
-    create_db(server_name)
-    scrape(server_name)
+    create_db(muni_name)
+    scrape(muni_name)
 
 
 @task
@@ -233,11 +227,11 @@ def renew_db_all():
 
 
 @task
-def refresh_db(server_name):
+def refresh_db(muni_name):
     """Run the update_db script file and scrape all gushim on a certain heroku app"""
     
-    update_db(server_name)
-    scrape(server_name)
+    update_db(muni_name)
+    scrape(muni_name)
 
 
 @task

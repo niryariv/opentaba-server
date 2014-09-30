@@ -6,7 +6,7 @@ in the server repository
 from fabric.api import prompt, task
 
 
-from scripts.client_fabfile import add_muni
+from scripts.client_fabfile import create_client
 
 from scripts.server_fabfile import create_server, delete_server, update_gushim_server, deploy_server, deploy_server_all, create_db
 from scripts.server_fabfile import update_db, scrape, renew_db, renew_db_all, refresh_db, refresh_db_all
@@ -25,4 +25,4 @@ def create_municipality(muni_name, display_name):
     
     if sure == 'yes':
         create_server(muni_name, display_name)
-        add_muni(muni_name, display_name)
+        create_client(muni_name, display_name)

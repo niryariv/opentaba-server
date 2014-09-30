@@ -1,6 +1,5 @@
 GUSHIM = {
     "arabe": {
-        "display": "\u05e2\u05e8\u05d0\u05d1\u05d4",
         "list": [
             "19430",
             "19428",
@@ -60,7 +59,6 @@ GUSHIM = {
         ]
     },
     "eilat": {
-        "display": "\u05d0\u05d9\u05dc\u05ea",
         "list": [
             "40033",
             "40032",
@@ -146,7 +144,6 @@ GUSHIM = {
         ]
     },
     "givataiim": {
-        "display": "\u05d2\u05d1\u05e2\u05ea\u05d9\u05d9\u05dd",
         "list": [
             "6155",
             "6168",
@@ -167,7 +164,6 @@ GUSHIM = {
         ]
     },
     "holon": {
-        "display": "\u05d7\u05d5\u05dc\u05df",
         "list": [
             "6004",
             "6005",
@@ -292,7 +288,6 @@ GUSHIM = {
         ]
     },
     "jerusalem": {
-        "display": "\u05d9\u05e8\u05d5\u05e9\u05dc\u05d9\u05dd",
         "list": [
             "28046",
             "28047",
@@ -966,7 +961,6 @@ GUSHIM = {
         ]
     },
     "rishon": {
-        "display": "\u05e8\u05d0\u05e9\u05d5\u05df \u05dc\u05e6\u05d9\u05d5\u05df",
         "list": [
             "2704",
             "2709",
@@ -1141,7 +1135,6 @@ GUSHIM = {
         ]
     },
     "tveria": {
-        "display": "\u05d8\u05d1\u05e8\u05d9\u05d4",
         "list": [
             "15049",
             "15027",
