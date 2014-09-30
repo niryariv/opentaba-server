@@ -56,7 +56,7 @@ def _get_muni_bounds(features):
 
 
 @task
-def add_muni(muni_name, display_name=''):
+def create_client(muni_name, display_name=''):
     """Add an entry for a new municipality or update an existing one to the munis.js file with the required data"""
     
     with lcd(os.path.join('..', 'opentaba-client')):
