@@ -117,6 +117,9 @@ def update_gushim_server(muni_name):
         for eg in existing_gushim[muni_name]['list']:
             if eg in gush_ids:
                 gush_ids.remove(eg)
+    else:
+        existing_gushim[muni_name] = {'list': []}
+
     
     # append the remaining gush ids list
     if len(gush_ids) == 0:
