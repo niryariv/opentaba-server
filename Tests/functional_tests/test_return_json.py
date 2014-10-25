@@ -54,7 +54,7 @@ def test_api_get_plan():
     # I don't know the correct number, since it's changes with each update, but it should be more then this
     assert_true(len(j) >= 10)
 
-    sample = j[0]
+    sample = j[1]
 	
     eq_(sorted(sample.keys()), [u'_id',
                                 u'area',
@@ -83,6 +83,7 @@ def test_api_get_plan():
 
     #eq_(sample['status'], u"פרסום בעיתונות להפקדה ")
     assert_true('30649' in sample['gushim'])
+    eq_(sample['plan_id'], 1013209);
     msg = 'taba2.aspx'
     assert_true(msg in sample['details_link'])
     eq_(sample['takanon_link'], [u'http://mmi.gov.il/IturTabotData/takanonim/jerus/1013209.pdf'])
