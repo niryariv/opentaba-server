@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
 
+"""
+Adapted from: http://stackoverflow.com/a/16743363
+This script will run a small web server, redirect you to authorize the Taba Publisher facebook
+app to manage_pages permission, extend the access token and print out your page tokens
+"""
+
 import web
 from facepy import GraphAPI, utils
 from urlparse import parse_qs
