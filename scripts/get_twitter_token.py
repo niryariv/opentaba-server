@@ -15,7 +15,7 @@ import web
 from facepy import GraphAPI, utils
 from urlparse import parse_qs
 
-consumer_key    = ''
+consumer_key = ''
 consumer_secret = ''
 
 
@@ -43,9 +43,9 @@ class index:
             token.set_verifier(user_data.oauth_verifier)
             
             oauth_consumer = oauth.Consumer(key=consumer_key, secret=consumer_secret)
-            oauth_client  = oauth.Client(oauth_consumer, token)
+            oauth_client = oauth.Client(oauth_consumer, token)
             resp, content = oauth_client.request('https://api.twitter.com/oauth/access_token', method='POST', body='oauth_callback=oob&oauth_verifier=%s' % user_data.oauth_verifier)
-            access_token  = dict(parse_qsl(content))
+            access_token = dict(parse_qsl(content))
 
             if resp['status'] != '200':
                 return 'The request for a Token did not succeed: %s' % resp['status']

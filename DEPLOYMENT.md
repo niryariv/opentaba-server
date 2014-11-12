@@ -23,6 +23,42 @@ To deploy a new municipality, run: `fab create_client:holon,"חולון"` after 
 To change client configuration, you can edit `munis.js` manually later on, according to the [Municipality 
      Index File syntax](http://github.com/niryariv/opentaba-client/blob/master/DEPLOYMENT.md#municipality-index-file).
 
+##Automatic Facebook and Twitter Posting
+The server is able to post a plan's content to a Facebook page and Twitter feed every time a plan is created or updated.
+To enable this feature, environment variables need to be set on the server with things like access tokens, consumer keys etc.
+You can enable Facebook only, Twitter only or both, and can also enable Bit.ly as a link shortener, or have your links posted in their original form.
+
+###Environemnt Variables
+####Facebook
+The needed variables for Facebook posting are `FB_TOKEN` and `FB_PAGE_ID`, which correspond to the page access token after you gave the publisher app the `manage_pages` permission, and the page's id.
+To set them run (opentaba-server-holon is the application name in this example and the ones below):
+`heroku config:set FB_TOKEN="token" --app opentaba-server-holon
+heroku config:set FB_PAGE_ID="page_id" --app opentaba-server-holon`
+####Twitter
+The needed variables for Twitter posting are `TW_TOKEN`, `TW_TOKEN_SECRET`, `TW_CONSUMER` and `TW_CONSUMER_SECRET`, which correspond to the access token after you authorized the publiser app, the access token secret and the publisher app's consumer key and consumer secret.
+To set them run:
+`heroku config:set TW_TOKEN="token" --app opentaba-server-holon
+heroku config:set TW_TOKEN_SECRET="token_secret" --app opentaba-server-holon
+heroku config:set TW_CONSUMER="consumer" --app opentaba-server-holon
+heroku config:set TW_CONSUMER_SECRET="consumer_secret" --app opentaba-server-holon`
+####Bit.ly
+If you want links to be shortened before they are posted, you can enable Bit.ly shortening (not a must for neither Facebook nor Twitter posting).
+The needed variable is only `BITLY_TOKEN`. Set it by running: `heroku config:set BITLY_TOKEN="token" --app opentaba-server-holon`
+
+###Getting The Tokens
+There are two helper scripts made to help you authorize the Facebook and Twitter apps, which require manual web authorization, and get your access tokens easily.
+Before you can run them there are two things you must do:
+  1. Install their required libraries on your environment, ie. `pip install -r scripts/requirements.txt`
+  2. Set the app id and app secret on the Facebook script, or consumer key and consumer secret on the Twitter script. These are obviously not provided with the script, and are attainable at both apps' settings pages.
+####Facebook
+Run the `scripts/get_facebook_token.py` script, and browse [http://0.0.0.0:8080](http://0.0.0.0:8080).
+After authorizing the app, you will be redirected to a page which will list all your pages, their ids and their access tokens. Our server only posts to one page, so pick one and set the environment variables accordingly.
+####Twitter
+Run the `scripts/get_twitter_token.py` script, and browse [http://0.0.0.0:8080](http://0.0.0.0:8080).
+After authorizing the app, you will be redirected to a page with your access token and access token secret.
+####Bit.ly
+Simply go to the Bit.ly website's [apps page](https://bitly.com/a/oauth_apps) and generate a generic access token, which you can use.
+
 ##All Fabric Tasks
 ###Server
 + `fab create_server:muni_name, "display_name"`
