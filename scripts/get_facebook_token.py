@@ -9,12 +9,10 @@ app to manage_pages permission, extend the access token and print out your page 
 import web
 from facepy import GraphAPI, utils
 from urlparse import parse_qs
-
-url = ('/', 'index')
     
-app_id = '?'
-app_secret = '?'
-post_login_url = 'http://0.0.0.0:8080/'
+app_id = ''
+app_secret = ''
+
 
 class index:
     def GET(self):
@@ -23,7 +21,7 @@ class index:
         if not user_data.code:
             dialog_url = ('http://www.facebook.com/dialog/oauth?' +
                 'client_id=' + app_id +
-                '&redirect_uri=' + post_login_url +
+                '&redirect_uri=http://0.0.0.0:8080/' +
                 '&scope=manage_pages')
 
             return '<script>top.location.href="' + dialog_url + '"</script>'
@@ -34,7 +32,7 @@ class index:
                     path='oauth/access_token',
                     client_id=app_id,
                     client_secret=app_secret,
-                    redirect_uri=post_login_url,
+                    redirect_uri='http://0.0.0.0:8080/',
                     code=user_data.code
                 )
                 data = parse_qs(response)
@@ -56,7 +54,10 @@ class index:
             
 
 if __name__ == '__main__':
-    print 'Please browse to this address to authorize Taba Publisher:'
-    
-    app = web.application(url, globals())
-    app.run()
+    if app_id == '' or app_secret == '':
+        print 'Variables app_id and app_secret must be set to your Facebook app\'s values'
+        print 'Also, "http://0.0.0.0:8080" has to be set as a valid OAuth redirect URI in your app\'s advanced settings'
+    else:
+        print 'Please browse to this address to authorize Taba Publisher:'
+        app = web.application(url = ('/', 'index'), globals())
+        app.run()
