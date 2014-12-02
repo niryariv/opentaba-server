@@ -24,11 +24,14 @@ To change client configuration, you can edit `munis.js` manually later on, accor
      Index File syntax](http://github.com/niryariv/opentaba-client/blob/master/DEPLOYMENT.md#municipality-index-file).
 
 ##Automatic Facebook and Twitter Posting
-The server is able to post a plan's content to a Facebook page and Twitter feed every time a plan is created or updated.
+The server is able to post a plan's content to a Facebook page and Twitter feed every time a plan is created or updated, using a running instance of [opentaba-poster](https://github.com/florpor/opentaba-poster).
 To enable this feature, environment variables need to be set on the server with things like access tokens, consumer keys etc.
-You can enable Facebook only, Twitter only or both, and can also enable Bit.ly as a link shortener, or have your links posted in their original form.
+You can enable Facebook only, Twitter only or both.
 
 ###Environemnt Variables
+####Poster
+First and foremost, to enable social posting the address of the [opentaba-poster](https://github.com/florpor/opentaba-poster) we want to work with must be set.
+The name of the variable is `SOCIAL_SERVICE_URL`, and can be set this like so: `heroku config:set SOCIAL_SERVICE_URL="http://127.0.0.1/post" --app opentaba-server-holon`
 ####Facebook
 The needed variables for Facebook posting are `FB_TOKEN` and `FB_PAGE_ID`, which correspond to the page access token after you gave the publisher app the `manage_pages` permission, and the page's id.
 To set them run (opentaba-server-holon is the application name in this example and the ones below):
@@ -45,9 +48,6 @@ heroku config:set TW_TOKEN_SECRET="token_secret" --app opentaba-server-holon
 heroku config:set TW_CONSUMER="consumer" --app opentaba-server-holon
 heroku config:set TW_CONSUMER_SECRET="consumer_secret" --app opentaba-server-holon
 ```
-####Bit.ly
-If you want links to be shortened before they are posted, you can enable Bit.ly shortening (not a must for neither Facebook nor Twitter posting).
-The needed variable is only `BITLY_TOKEN`. Set it by running: `heroku config:set BITLY_TOKEN="token" --app opentaba-server-holon`
 
 ###Getting The Tokens
 There are two helper scripts made to help you authorize the Facebook and Twitter apps, which require manual web authorization, and get your access tokens easily.
