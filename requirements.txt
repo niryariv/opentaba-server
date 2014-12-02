@@ -19,6 +19,3 @@ times==0.6
 wsgiref==0.1.2
 logging
 pylibmc==1.3.0
-facepy==1.0.4
-twitter==1.15.0
-bitly_api==0.3

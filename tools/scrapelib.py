@@ -6,14 +6,15 @@ import re
 import logging
 import json
 import datetime
+import os
 from hashlib import md5
 from copy import deepcopy
 from multiprocessing.pool import ThreadPool
 
-from conn import *
+from conn import db, RUNNING_LOCAL
 from mmi_scrape import get_mmi_gush_json
 from mavat_scrape import get_mavat_gush_json
-from sociallib import post
+import sociallib
 
 date_pattern = re.compile(r'(\d+/\d+/\d+)')
 mmi_bad_plan_number_no_slash_pattern = re.compile(ur'^(.*[0-9]+)([א-ת])$')
@@ -237,7 +238,7 @@ def scrape_gush(gush, RUN_FOLDER=False, TESTING=False):
             db.plans.insert(plan)
             
             # post plan to social networks
-            post(plan)
+            sociallib.post(plan)
         else:
             # since the plan exists get it's _id and gushim values
             plan['_id'] = existing_plan['_id']
@@ -251,7 +252,7 @@ def scrape_gush(gush, RUN_FOLDER=False, TESTING=False):
                 db.plans.save(plan)
                 
                 # post plan to social networks
-                post(plan)
+                sociallib.post(plan)
             else:
                 # compare the values. maybe the plan wasn't modified at all
                 plan_copy = deepcopy(plan)
@@ -264,7 +265,7 @@ def scrape_gush(gush, RUN_FOLDER=False, TESTING=False):
                     db.plans.save(plan)
                     
                     # post plan to social networks
-                    post(plan)
+                    sociallib.post(plan)
             
                 # just make sure these are deleted because we will probably have quite a few iterations here
                 del plan_copy
