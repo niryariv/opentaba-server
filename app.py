@@ -195,6 +195,15 @@ def atom_feed_gush(gushim):
     return _create_response_atom_feed(request, _get_plans(query=gushim_query), feed_title=u'תב״ע פתוחה - גוש %s' % ', '.join(gushim)).get_response()
 
 
+@app.route('/plans/search/<plan_name>')
+@cached(app, timeout=3600)
+def find_plan(plan_name):
+    """
+    Find plans that contain the search query and return a json array of their plan and gush ids
+    """
+    return _create_response_json(_get_plans(count=3, query={'number': {'$regex': '.*%s.*' % plan_name}}))
+
+
 @app.route('/plan/<plan_id>/mavat')
 @cached(app, timeout=3600)
 def redirect_to_mavat(plan_id):
