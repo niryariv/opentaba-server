@@ -147,17 +147,20 @@ def get_gush(gush_id):
     return _create_response_json(gush[0])
 
 
-@app.route('/gush/<gush_id>/plans.json')
+@app.route('/gush/<gushim>/plans.json')
 @cached(app, timeout=3600)
-def get_plans(gush_id):
+def get_plans(gushim):
     """
-    get plans from gush_id
+    Get JSON plan data for one or more gush IDs.
+    The URL format for multiple gushim is something like /gush/12340,12350,12360/plans.json
     """
-    gush = _get_gushim(query={"gush_id": gush_id})
-    if gush is None or len(gush) == 0:
-        abort(404)
+    gushim = gushim.split(',')
+    if len(gushim) > 1:
+        gushim_query = {'gushim': {'$in': gushim}}
+    else:
+        gushim_query = {'gushim': gushim[0]}
 
-    return _create_response_json(_get_plans(query={"gushim": gush_id}))
+    return _create_response_json(_get_plans(query=gushim_query))
 
 
 @app.route('/recent.json')
@@ -192,6 +195,7 @@ def atom_feed_gush(gushim):
         gushim_query = {'gushim': {'$in': gushim}}
     else:
         gushim_query = {'gushim': gushim[0]}
+    
     return _create_response_atom_feed(request, _get_plans(query=gushim_query), feed_title=u'תב״ע פתוחה - גוש %s' % ', '.join(gushim)).get_response()
 
 

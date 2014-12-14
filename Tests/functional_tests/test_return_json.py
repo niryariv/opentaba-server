@@ -90,6 +90,16 @@ def test_api_get_plan():
     # eq_(sample['essence'], u"השלמת קומה והרחבות דיור")
 
 
+def test_api_get_plan():
+    response = testapp.get('/gush/30649,28107/plans.json')
+    j = json.loads(response.data)
+    eq_(response.status_code, 200)
+    eq_(response.mimetype, 'application/json')
+
+    # I don't know the correct number, since it's changes with each update, but it should be more then this
+    assert_true(len(j) >= 36)
+
+
 def test_api_wakeup():
     response = testapp.get('/wakeup')
     j = json.loads(response.data)
