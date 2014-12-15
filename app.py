@@ -189,7 +189,7 @@ def atom_feed_gush(gushim):
     """
     gushim = gushim.split(',')
     if len(gushim) > 1:
-        gushim_query = {'gushim': {'$in': gushim}}
+        gushim_query = {'gushim': {'$in': gushim}, 'year': {'$gt': datetime.datetime.now().year - 10}}
     else:
         gushim_query = {'gushim': gushim[0]}
     return _create_response_atom_feed(request, _get_plans(query=gushim_query), feed_title=u'תב״ע פתוחה - גוש %s' % ', '.join(gushim)).get_response()
