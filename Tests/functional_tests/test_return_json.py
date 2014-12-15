@@ -97,7 +97,7 @@ def test_api_get_plan():
     eq_(response.mimetype, 'application/json')
 
     # I don't know the correct number, since it's changes with each update, but it should be more then this
-    assert_true(len(j) >= 36)
+    assert_true(len(j) >= 19)
 
 
 def test_api_wakeup():

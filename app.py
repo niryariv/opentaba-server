@@ -156,7 +156,7 @@ def get_plans(gushim):
     """
     gushim = gushim.split(',')
     if len(gushim) > 1:
-        gushim_query = {'gushim': {'$in': gushim}}
+        gushim_query = {'gushim': {'$in': gushim}, 'year': {'$gt': datetime.datetime.now().year - 10}}
     else:
         gushim_query = {'gushim': gushim[0]}
 
@@ -192,7 +192,7 @@ def atom_feed_gush(gushim):
     """
     gushim = gushim.split(',')
     if len(gushim) > 1:
-        gushim_query = {'gushim': {'$in': gushim}, 'year': {'$gt': datetime.datetime.now().year - 10}}
+        gushim_query = {'gushim': {'$in': gushim}}
     else:
         gushim_query = {'gushim': gushim[0]}
     
