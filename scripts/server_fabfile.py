@@ -55,7 +55,7 @@ def create_server(muni_name, display_name):
     update_gushim_server(muni_name)
     
     # create a new heroku app with the needed addons
-    local('heroku apps:create %s --addons scheduler:standard,memcachedcloud:25,mongohq:sandbox,redistogo:nano' % full_name)
+    local('heroku apps:create %s --addons scheduler:standard,memcachedcloud:25,mongolab:sandbox,redistogo:nano' % full_name)
     
     # set the server's display name
     local('heroku config:set MUNICIPALITY_NAME="%s" --app %s' % (display_name, full_name))

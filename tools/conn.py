@@ -7,7 +7,7 @@ import pymongo
 from pymongo.errors import ConnectionFailure
 from urlparse import urlparse
 
-MONGO_URL = os.environ.get('MONGOHQ_URL')
+MONGO_URL = os.environ.get('MONGOLAB_URL')
 
 if MONGO_URL:  # on Heroku, get a connection
     m_conn = pymongo.Connection(MONGO_URL)
