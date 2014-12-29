@@ -199,7 +199,7 @@ def atom_feed_gush(gushim):
     return _create_response_atom_feed(request, _get_plans(query=gushim_query), feed_title=u'תב״ע פתוחה - גוש %s' % ', '.join(gushim)).get_response()
 
 
-@app.route('/plans/search/<plan_name>')
+@app.route('/plans/search/<path:plan_name>')
 @cached(app, timeout=3600)
 def find_plan(plan_name):
     """
