@@ -7,7 +7,9 @@ import pymongo
 from pymongo.errors import ConnectionFailure
 from urlparse import urlparse
 
-MONGO_URL = os.environ.get('MONGOHQ_URL')
+# support legacy munis that were installed with MongoHQ before it canceled the sandbox plan
+MONGO_URL = os.environ.get('MONGOLAB_URI') or os.environ.get('MONGOHQ_URL')
+
 
 if MONGO_URL:  # on Heroku, get a connection
     m_conn = pymongo.Connection(MONGO_URL)

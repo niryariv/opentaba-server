@@ -18,20 +18,14 @@ def _heroku_connect():
 
 
 def _get_server_full_name(muni_name):
-    if muni_name == 'jerusalem':
-        return 'opentaba-server'
-    
     return 'opentaba-server-%s' % muni_name
 
 
 def _is_server_full_name(name):
-    return name == 'opentaba-server' or name.startswith('opentaba-server-')
+    return name.startswith('opentaba-server-')
 
 
 def _get_muni_name(server_full_name):
-    if server_full_name == 'opentaba-server':
-        return 'jerusalem'
-    
     if _is_server_full_name(server_full_name):
         return server_full_name[16:]
     
@@ -61,7 +55,7 @@ def create_server(muni_name, display_name):
     update_gushim_server(muni_name)
     
     # create a new heroku app with the needed addons
-    local('heroku apps:create %s --addons scheduler:standard,memcachedcloud:25,mongohq:sandbox,redistogo:nano' % full_name)
+    local('heroku apps:create %s --addons scheduler:standard,memcachedcloud:25,mongolab:sandbox,redistogo:nano' % full_name)
     
     # set the server's display name
     local('heroku config:set MUNICIPALITY_NAME="%s" --app %s' % (display_name, full_name))
