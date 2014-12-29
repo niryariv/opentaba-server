@@ -28,41 +28,15 @@ The server is able to post a plan's content to a Facebook page and Twitter feed 
 To enable this feature, environment variables need to be set on the server with things like access tokens, consumer keys etc.
 You can enable Facebook only, Twitter only or both.
 
-###Environemnt Variables
+###Environment Variables
 ####Poster
-First and foremost, to enable social posting the address of the [opentaba-poster](https://github.com/florpor/opentaba-poster) we want to work with must be set.
-The name of the variable is `SOCIAL_SERVICE_URL`, and can be set this like so: `heroku config:set SOCIAL_SERVICE_URL="http://127.0.0.1/post" --app opentaba-server-holon`
-####Facebook
-The needed variables for Facebook posting are `FB_TOKEN` and `FB_PAGE_ID`, which correspond to the page access token after you gave the publisher app the `manage_pages` permission, and the page's id.
-To set them run (opentaba-server-holon is the application name in this example and the ones below):
+To enable social posting, we must be configured to work with an instance of [opentaba-poster](https://github.com/florpor/opentaba-poster).
+To do that, we must make sure we are defined as a poster on the opentaba-poster app, and then set two environment variables -
+`POSTER_SERVICE_URL` must be set to the url of the opentaba-poster app, and `POSTER_ID` must be set to our assigned id, eg:
 ```
-heroku config:set FB_TOKEN="token" --app opentaba-server-holon
-heroku config:set FB_PAGE_ID="page_id" --app opentaba-server-holon
+heroku config:set POSTER_SERVICE_URL="http://poster.service.com/" --app opentaba-server-holon
+heroku config:set POSTER_ID="holon_id" --app opentaba-server-holon
 ```
-####Twitter
-The needed variables for Twitter posting are `TW_TOKEN`, `TW_TOKEN_SECRET`, `TW_CONSUMER` and `TW_CONSUMER_SECRET`, which correspond to the access token after you authorized the publiser app, the access token secret and the publisher app's consumer key and consumer secret.
-To set them run:
-```
-heroku config:set TW_TOKEN="token" --app opentaba-server-holon
-heroku config:set TW_TOKEN_SECRET="token_secret" --app opentaba-server-holon
-heroku config:set TW_CONSUMER="consumer" --app opentaba-server-holon
-heroku config:set TW_CONSUMER_SECRET="consumer_secret" --app opentaba-server-holon
-```
-
-###Getting The Tokens
-There are two helper scripts made to help you authorize the Facebook and Twitter apps, which require manual web authorization, and get your access tokens easily.
-Before you can run them there are two things you must do:
-  1. Install their required libraries on your environment, ie. `pip install -r scripts/requirements.txt`
-  2. Set the app id and app secret on the Facebook script, or consumer key and consumer secret on the Twitter script. These are obviously not provided with the script, and are attainable at both apps' settings pages.
-
-####Facebook
-Run the `scripts/get_facebook_token.py` script, and browse [http://0.0.0.0:8080](http://0.0.0.0:8080).
-After authorizing the app, you will be redirected to a page which will list all your pages, their ids and their access tokens. Our server only posts to one page, so pick one and set the environment variables accordingly.
-####Twitter
-Run the `scripts/get_twitter_token.py` script, and browse [http://0.0.0.0:8080](http://0.0.0.0:8080).
-After authorizing the app, you will be redirected to a page with your access token and access token secret.
-####Bit.ly
-Simply go to the Bit.ly website's [apps page](https://bitly.com/a/oauth_apps) and generate a generic access token, which you can use.
 
 ##All Fabric Tasks
 ###Server
