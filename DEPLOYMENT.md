@@ -6,7 +6,7 @@ you are deploying)
 To deploy a server/database for a new municipality, follow these steps:
   1. Make sure the GeoJSON map file with the name of the municipality has 
      been added to the [map repository](http://github.com/niryariv/israel_gushim)
-  2. Run `fab create_server:holon,"חולון"`. This will add the new gush ids to the tools/gushim.py file, create & configure the new Heroku app / MongoDB, and finally run the scraper to get all municipality's plans. 
+  2. Run `fab create_server:holon,"חולון"`. This will add the new gush ids to the lib/gushim.py file, create & configure the new Heroku app / MongoDB, and finally run the scraper to get all municipality's plans. 
   3. When the task finishes running, a browser window (or tab) will be open with 
      the new app's scheduler dashboard. Add a new scheduled task with the 
      command: `python scrape.py -g all ; python worker.py`. Do not change dyno settings.
@@ -52,9 +52,9 @@ heroku config:set POSTER_ID="holon_id" --app opentaba-server-holon
   ignore_errors is set to false by default because if this task fails it most
   likely means the app does not exist to begin with.
 
-+ `fab update_gushim_server:muni_name` Update the [tools/gushim.py](tools/gushim.py) file with the
++ `fab update_gushim_server:muni_name` Update the [lib/gushim.py](lib/gushim.py) file with the
   gushim of a new municipality or the updated ones of an existing municipality.
-  This task downloads the gush map file from [israel_gushim](http://github.com/niryariv/israel_gushim), parses its  data, and if there are new gushim it updates the [tools/gushim.py](tools/gushim.py) file and the 
+  This task downloads the gush map file from [israel_gushim](http://github.com/niryariv/israel_gushim), parses its  data, and if there are new gushim it updates the [lib/gushim.py](lib/gushim.py) file and the 
   [Tests/functional_tests/test_return_json.py](Tests/functional_tests/test_return_json.py) file (with the new amount of gushim), commits and pushes on the master branch. Note that this task does not deploy
   anywhere, and the new gushim data will not exist on active servers until you
   deploy changes to them.
@@ -65,10 +65,10 @@ heroku config:set POSTER_ID="holon_id" --app opentaba-server-holon
 + `fab deploy_server_all` Find servers by looking at your `heroku list` and filtering
   out the ones that don't match our server name pattern. Run deploy_server task
   on each of the discovered servers.
-+ `fab create_db:muni_name` Run the [tools/create_db.py](tools/create_db.py) script on the given
++ `fab create_db:muni_name` Run the [scripts/create_db.py](scripts/create_db.py) script on the given
   municipality's heroku app. Will only create db for the given municipality's
   gushim.
-+ `fab update_db:muni_name` Run the [tools/update_db.py](tools/update_db.py) script on the given
++ `fab update_db:muni_name` Run the [scripts/update_db.py](scripts/update_db.py) script on the given
   municipality's heroku app. Will only update db for the given municipality's
   gushim.
 + `fab scrape:muni_name,<show_output=False|True>` Run the [scrape.py](scrape.py) script on the

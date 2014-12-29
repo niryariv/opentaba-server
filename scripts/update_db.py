@@ -1,5 +1,10 @@
 #!/usr/bin/env python2
 
+# allow ourselves to import from the parent and current directory
+import sys
+sys.path.insert(0, '../')
+sys.path.insert(0, '.')
+
 from conn import *
 from gushim import GUSHIM
 from optparse import OptionParser

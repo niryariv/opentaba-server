@@ -1,7 +1,12 @@
 #!/usr/bin/python
 
-from conn import *
-from gushim import GUSHIM
+# allow ourselves to import from the parent and current directory
+import sys
+sys.path.insert(0, '../')
+sys.path.insert(0, '.')
+
+from lib.conn import *
+from lib.gushim import GUSHIM
 from optparse import OptionParser
 
 parser = OptionParser()
