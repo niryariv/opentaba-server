@@ -81,8 +81,11 @@ heroku config:set POSTER_ID="holon_id" --app opentaba-server-holon
   by our naming pattern. Run the renew_db task on each one discovered.
 + `fab refresh_db:muni_name` Run the update_db and then the scrape tasks on
   the given municipality's heroku app.
-+ `fab refresh_db_all` Find servers by looing at your `heroku list` and filtering
++ `fab refresh_db_all` Find servers by looking at your `heroku list` and filtering
   by our naming pattern. Run the refresh_db task on each one discovered.
++ `fab sync_poster:muni_name,min_date` Run the [scripts/sync_poster.py](scripts/sync_poster.py) script on the given
+  municipality's heroku app. min_date is the minimum date of plans to post, 
+  and should be of the format: 1/1/2015.
 
 ###Client
 + `fab create_client:muni_name,"display_name"` For client creation, all we need

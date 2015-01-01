@@ -237,3 +237,11 @@ def refresh_db_all():
     
     for server in _get_servers():
         refresh_db(_get_muni_name(server))
+
+@task
+def sync_poster(muni_name, min_date):
+    """Run the sync_poster script file on a certain heroku app"""
+    
+    _heroku_connect()
+    
+    local('heroku run "python scripts/sync_date.py -m %s -q" --app %s' % (min_date, _get_server_full_name(muni_name)))
