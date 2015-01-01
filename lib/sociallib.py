@@ -17,4 +17,4 @@ def post(plan):
         post_data = {'poster_id': os.environ['POSTER_ID'], 'title': formatted_plan['title'], 'content': formatted_plan['content'], 'url': formatted_plan['url']}
         
         # send data to social poster service. we just get an ok and continue, it's up to the service to take care of errors and such
-        requests.post(os.environ['POSTER_SERVICE_URL'], data=post_data)
+        requests.post('%s/post' % os.environ['POSTER_SERVICE_URL'].rstrip('/'), data=post_data)

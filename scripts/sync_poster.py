@@ -68,16 +68,17 @@ if not options.dont_wait:
     status = 10
     
     while status > 1:
+        # wait for 15 seconds then poke
+        sleep(15)
+        
         print 'Poking poster service for status...'
         
+        # get the /status page and parse the number in the output
         r = requests.get('%s/status' % os.environ['POSTER_SERVICE_URL'].rstrip('/'))
         for s in r.text.split():
             if s.isdigit():
                 status = int(s)
         
-        print 'Approxiamtely %s posts remaining...' % status
-        
-        # wait for 30 seconds then poke again
-        sleep(30)
+        print 'Approximately %s posts remaining...' % status
     
     print 'Poster done!'
