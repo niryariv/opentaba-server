@@ -106,57 +106,45 @@ def update_gushim_server(muni_name):
     with open(os.path.join('lib', 'gushim.py')) as gushim_data:
         existing_gushim = loads(gushim_data.read().replace('GUSHIM = ', ''))
     
-    # remove all existing gushim from our new-gushim list, or create a new dictionary entry
-    if muni_name in existing_gushim.keys():
-        for eg in existing_gushim[muni_name]['list']:
-            if eg in gush_ids:
-                gush_ids.remove(eg)
-    else:
-        existing_gushim[muni_name] = {'list': []}
-
+    # if the municipality already exists replace it's list, otherwise create a new one
+    existing_gushim[muni_name] = {'list': gush_ids}
     
-    # append the remaining gush ids list
-    if len(gush_ids) == 0:
-        warn('No new gush ids were found in the downloaded gush map')
-    else:
-        existing_gushim[muni_name]['list'] += gush_ids
-        
-        # write the dictionary back to lib/gushim.py
-        out = open(os.path.join('lib', 'gushim.py'), 'w')
-        out.write('GUSHIM = ' + dumps(existing_gushim, sort_keys=True, indent=4, separators=(',', ': ')))
-        out.flush()
-        os.fsync(out.fileno())
-        out.close()
+    # write the dictionary back to lib/gushim.py
+    out = open(os.path.join('lib', 'gushim.py'), 'w')
+    out.write('GUSHIM = ' + dumps(existing_gushim, sort_keys=True, indent=4, separators=(',', ': ')))
+    out.flush()
+    os.fsync(out.fileno())
+    out.close()
     
-        # update the automated test to test for the new total number of gushim
-        total = []
-        for key in existing_gushim.keys():
-            for g in existing_gushim[key]['list']:
-                if g not in total:
-                    total.append(g)
+    # update the automated test to test for the new total number of gushim
+    total = []
+    for key in existing_gushim.keys():
+        for g in existing_gushim[key]['list']:
+            if g not in total:
+                total.append(g)
     
-        with open(os.path.join('Tests', 'functional_tests', 'test_return_json.py')) as test_data:
-            test_code = test_data.read()
-            gush_count_line_re = re.compile('(eq_\(len\(j\), )[0-9]+(\))')
-            test_code = gush_count_line_re.sub('eq_(len(j), %s)' % len(total), test_code, count=1)
+    with open(os.path.join('Tests', 'functional_tests', 'test_return_json.py')) as test_data:
+        test_code = test_data.read()
+        gush_count_line_re = re.compile('(eq_\(len\(j\), )[0-9]+(\))')
+        test_code = gush_count_line_re.sub('eq_(len(j), %s)' % len(total), test_code, count=1)
     
-        out = open(os.path.join('Tests', 'functional_tests', 'test_return_json.py'), 'w')
-        out.write(test_code)
-        out.flush()
-        os.fsync(out.fileno())
-        out.close()
+    out = open(os.path.join('Tests', 'functional_tests', 'test_return_json.py'), 'w')
+    out.write(test_code)
+    out.flush()
+    os.fsync(out.fileno())
+    out.close()
     
-        # commit and push to origin
-        local('git add %s' % os.path.join('lib', 'gushim.py'))
-        local('git add %s' % os.path.join('Tests', 'functional_tests', 'test_return_json.py'))
-        local('git commit -m "added gushim and updated tests for %s"' % muni_name)
-        local('git push origin master')
+    # commit and push to origin
+    local('git add %s' % os.path.join('lib', 'gushim.py'))
+    local('git add %s' % os.path.join('Tests', 'functional_tests', 'test_return_json.py'))
+    local('git commit -m "added gushim and updated tests for %s"' % muni_name)
+    local('git push origin master')
     
-        print '*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*'
-        print 'The new/updated gushim data was added to lib/gushim.py and the test file '
-        print 'Tests/functional_tests/test_return_json.py was updated.'
-        print 'Both files were successfuly comitted and pushed to origin.'
-        print '*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*'
+    print '*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*'
+    print 'The new/updated gushim data was added to lib/gushim.py and the test file '
+    print 'Tests/functional_tests/test_return_json.py was updated.'
+    print 'Both files were successfuly comitted and pushed to origin.'
+    print '*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*'
 
 
 @task
