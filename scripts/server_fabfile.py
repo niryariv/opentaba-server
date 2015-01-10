@@ -102,15 +102,15 @@ def update_gushim_server(muni_name):
     # make sure we're using the master branch
     local('git checkout master')
     
-    # open and load the existing gushim dictionary from tools/gushim.py
-    with open(os.path.join('tools', 'gushim.py')) as gushim_data:
+    # open and load the existing gushim dictionary from lib/gushim.py
+    with open(os.path.join('lib', 'gushim.py')) as gushim_data:
         existing_gushim = loads(gushim_data.read().replace('GUSHIM = ', ''))
     
     # if the municipality already exists replace it's list, otherwise create a new one
     existing_gushim[muni_name] = {'list': gush_ids}
     
-    # write the dictionary back to tools/gushim.py
-    out = open(os.path.join('tools', 'gushim.py'), 'w')
+    # write the dictionary back to lib/gushim.py
+    out = open(os.path.join('lib', 'gushim.py'), 'w')
     out.write('GUSHIM = ' + dumps(existing_gushim, sort_keys=True, indent=4, separators=(',', ': ')))
     out.flush()
     os.fsync(out.fileno())
@@ -135,13 +135,13 @@ def update_gushim_server(muni_name):
     out.close()
     
     # commit and push to origin
-    local('git add %s' % os.path.join('tools', 'gushim.py'))
+    local('git add %s' % os.path.join('lib', 'gushim.py'))
     local('git add %s' % os.path.join('Tests', 'functional_tests', 'test_return_json.py'))
     local('git commit -m "added gushim and updated tests for %s"' % muni_name)
     local('git push origin master')
     
     print '*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*'
-    print 'The new/updated gushim data was added to tools/gushim.py and the test file '
+    print 'The new/updated gushim data was added to lib/gushim.py and the test file '
     print 'Tests/functional_tests/test_return_json.py was updated.'
     print 'Both files were successfuly comitted and pushed to origin.'
     print '*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*'
@@ -170,7 +170,7 @@ def create_db(muni_name):
     
     _heroku_connect()
     
-    local('heroku run "python tools/create_db.py --force -m %s" --app %s' % (muni_name, _get_server_full_name(muni_name)))
+    local('heroku run "python scripts/create_db.py --force -m %s" --app %s' % (muni_name, _get_server_full_name(muni_name)))
 
 
 @task
@@ -179,7 +179,7 @@ def update_db(muni_name):
     
     _heroku_connect()
     
-    local('heroku run "python tools/update_db.py --force -m %s" --app %s' % (muni_name, _get_server_full_name(muni_name)))
+    local('heroku run "python scripts/update_db.py --force -m %s" --app %s' % (muni_name, _get_server_full_name(muni_name)))
 
 
 @task
@@ -225,3 +225,11 @@ def refresh_db_all():
     
     for server in _get_servers():
         refresh_db(_get_muni_name(server))
+
+@task
+def sync_poster(muni_name, min_date):
+    """Run the sync_poster script file on a certain heroku app"""
+    
+    _heroku_connect()
+    
+    local('heroku run "python scripts/sync_date.py -m %s -q" --app %s' % (min_date, _get_server_full_name(muni_name)))

@@ -16,7 +16,7 @@ The code is Flask based, working with MongoDB as database, Uses redis to handle 
 Notice that if you are running this on a local dev machine you need to have mongodb running and listening in port 27017
 #### Create initial DB
 
-    python create_db --force -m [all | <muni>]
+    python scripts/create_db --force -m [all | <muni>]
 
 #### Scrape data into DB
 

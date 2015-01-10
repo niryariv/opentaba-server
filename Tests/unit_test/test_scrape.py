@@ -3,7 +3,7 @@ from flask import *
 from app import app
 from nose.tools import eq_, assert_true
 from nose import with_setup
-from tools.scrapelib import scrape_gush
+from lib.scrapelib import scrape_gush
 import os
 
 testapp = app.test_client()

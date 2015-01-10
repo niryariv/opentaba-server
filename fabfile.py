@@ -9,7 +9,7 @@ from fabric.api import prompt, task
 from scripts.client_fabfile import create_client
 
 from scripts.server_fabfile import create_server, delete_server, update_gushim_server, deploy_server, deploy_server_all, create_db
-from scripts.server_fabfile import update_db, scrape, renew_db, renew_db_all, refresh_db, refresh_db_all
+from scripts.server_fabfile import update_db, scrape, renew_db, renew_db_all, refresh_db, refresh_db_all, sync_poster
 
 
 @task

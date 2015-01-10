@@ -7,8 +7,8 @@ import logging
 from optparse import OptionParser, SUPPRESS_HELP
 from rq import Queue
 from app import app
-from tools.conn import *
-from tools.scrapelib import scrape_gush
+from lib.conn import *
+from lib.scrapelib import scrape_gush
 from worker import redis_conn
 
 
