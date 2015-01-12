@@ -227,6 +227,19 @@ def refresh_db_all():
         refresh_db(_get_muni_name(server))
 
 @task
+def set_poster(muni_name, poster_base_url, poster_id):
+    """
+    Set the necessary environment variables on the app so it can communicate with
+    an opentaba-poster instance for social posting
+    """
+    
+    _heroku_connect()
+    full_name = _get_server_full_name(muni_name)
+    
+    local('heroku config:set POSTER_SERVICE_URL="%s" --app %s' % (poster_base_url, full_name))
+    local('heroku config:set POSTER_ID="%s" --app %s' % (poster_id, full_name))
+
+@task
 def sync_poster(muni_name, min_date):
     """Run the sync_poster script file on a certain heroku app"""
     

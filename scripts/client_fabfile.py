@@ -115,3 +115,38 @@ def create_client(muni_name, display_name=''):
             print 'do it now and push again. The municipality\'s site is now live at:'
             print 'http://%s.opentaba.info/' % muni_name
             print '*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*'
+
+
+@task
+def update_client_social_links(muni_name, facebook_link='', twitter_link=''):
+    """Add an entry for a new municipality or update an existing one to the munis.js file with the required data"""
+    
+    with lcd(os.path.join('..', 'opentaba-client')):
+        # make sure we're using the master branch
+        local('git checkout master')
+    
+        # load the current municipalities' index dictionary
+        with open(os.path.join('..', 'opentaba-client', 'munis.js')) as index_data:
+            index_json = loads(index_data.read().replace('var municipalities = ', '').rstrip('\n').rstrip(';'))
+        
+        if muni_name not in index_json.keys():
+            abort('Municipality not registered in muni.js file')
+        
+        # set new links
+        index_json['fb_link'] = facebook_link
+        index_json['twitter_link'] = twitter_link
+        
+        # commit and push to origin
+        local('git add munis.js')
+        local('git commit -m "updated %s social links"' % muni_name)
+        local('git push origin master')
+        
+        # merge into gh-pages branch
+        local('git checkout gh-pages')
+        local('git merge master --no-edit')
+        local('git push origin gh-pages')
+        
+        # back to master for work
+        local('git checkout master')
+
+        print 'Changes made to munis.js file, comitted and pushed to master and gh-pages'

@@ -1,0 +1,5 @@
+Fabric==1.10.1
+web.py==0.37
+oauth2==1.5.211
+facepy==1.0.6
+pymongo==2.4.1
