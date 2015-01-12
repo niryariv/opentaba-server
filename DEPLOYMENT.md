@@ -107,7 +107,7 @@ heroku config:set POSTER_ID="holon_id" --app opentaba-server-holon
   and push the changes to publish them.
 
 ###Poster
-+ `fab add_new_poster:poster_app_name,poster_desc='',fb_app_id='',fb_app_secret='',tw_con_id='',tw_con_secret=''`
++ `fab add_new_poster:poster_app_name,poster_desc='',fb_app_id=None,fb_app_secret=None,tw_con_id=None,tw_con_secret=None`
   Create a new poster record on an opentaba-poster server. Facebook details, Twitter details or both can be given.
   This task will attempt to authorize you on the given social networks and get the necessary tokens for you, then
   it will connect to the poster's database and add a new poster record for the given Facebook page and/or Twitter 
