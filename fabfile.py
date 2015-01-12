@@ -31,7 +31,7 @@ def create_municipality(muni_name, display_name):
 
 
 @task
-def create_poster(muni_name, poster_app_name, poster_desc='', fb_app_id='', fb_app_secret='', tw_con_id='', tw_con_secret='', fb_link='', tw_link=''):
+def create_poster(muni_name, poster_app_name, poster_desc='', fb_app_id=None, fb_app_secret=None, tw_con_id=None, tw_con_secret=None, fb_link='', tw_link=''):
     """Create a new poster document on the poster server and set the needed environment variables on the opentaba-server instance"""
     
     poster_id = add_new_poster(poster_app_name, poster_desc, fb_app_id, fb_app_secret, tw_con_id, tw_con_secret)
@@ -41,7 +41,8 @@ def create_poster(muni_name, poster_app_name, poster_desc='', fb_app_id='', fb_a
         update_client_social_links(muni_name, fb_link, tw_link)
     
     print '*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*'
-    print 'Done creating a new poster and setting the environment variables on the opentaba-server!'
-    print 'If not alreadey set, you can set links to the Facebook and Twitter pages that will '
-    print 'appear on the website using the update_client_social_links task'
+    print 'Done creating a new poster and setting the environment variables on the'
+    print 'opentaba-server! If not alreadey set, you can set links to the Facebook'
+    print 'and Twitter pages that will appear on the website using the'
+    print 'update_client_social_links task'
     print '*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*'

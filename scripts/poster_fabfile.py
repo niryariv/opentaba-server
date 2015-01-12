@@ -55,6 +55,73 @@ def _authorize_get_response(url):
     return parse_qs(urlparse(data.split()[1]).query)
 
 
+def _get_facebook_token(fb_app_id, fb_app_secret):
+    # try to authenticate
+    fb_auth = _authorize_get_response('http://www.facebook.com/dialog/oauth?client_id=%s&redirect_uri=http://0.0.0.0:8080/&scope=manage_pages' % fb_app_id)
+    
+    if 'code' not in fb_auth.keys():
+        abort('Did not receive a token from Facebook! Did you decline authorization?')
+    
+    # get a short-term access token
+    graph = GraphAPI()
+    response = graph.get(
+        path='oauth/access_token',
+        client_id=fb_app_id,
+        client_secret=fb_app_secret,
+        redirect_uri='http://0.0.0.0:8080/',
+        code=fb_auth['code'][0]
+    )
+    data = parse_qs(response)
+    
+    # extend the token
+    extended_token = utils.get_extended_access_token(data['access_token'][0], fb_app_id, fb_app_secret)
+    graph = GraphAPI(extended_token[0])
+    
+    # get the accounts associated with the token (list of pages managed by the user)
+    pages = []
+    accounts = graph.get(path = 'me/accounts')
+    for entry in accounts['data']:
+        pages.append({'value': {'page_id': unicode(entry['id']), 'token': unicode(entry['access_token'])}, 'display': '%s - %s' % (unicode(entry['id']), unicode(entry['name']))})
+    
+    # get the user's selected page
+    selected_page = _get_user_choice('Select a page from your authorized ones: ', pages)
+    if selected_page:
+        return (selected_page['token'], selected_page['page_id'])
+    else:
+        return (None, None)
+
+
+def _get_twitter_token(tw_con_id, tw_con_secret):
+    # get a temp token
+    oauth_consumer = oauth.Consumer(key=tw_con_id, secret=tw_con_secret)
+    oauth_client = oauth.Client(oauth_consumer)
+    resp, content = oauth_client.request('https://api.twitter.com/oauth/request_token', 'GET')
+    
+    if resp['status'] != '200':
+        abort('Invalid response from Twitter requesting temp token: %s' % resp['status'])
+    
+    # have the user authorize our app
+    request_token = parse_qs(content)
+    tw_auth = _authorize_get_response('https://api.twitter.com/oauth/authorize?oauth_token=%s&oauth_callback=http://0.0.0.0:8080/' % request_token['oauth_token'][0])
+    
+    if 'oauth_token' not in tw_auth.keys():
+        abort('Did not receive a token from Twitter! Did you decline authorization?')
+    
+    token = oauth.Token(tw_auth['oauth_token'][0], '')
+    token.set_verifier(tw_auth['oauth_verifier'][0])
+    
+    # get the access token for posting tweets by the user
+    oauth_consumer = oauth.Consumer(key=tw_con_id, secret=tw_con_secret)
+    oauth_client = oauth.Client(oauth_consumer, token)
+    resp, content = oauth_client.request('https://api.twitter.com/oauth/access_token', method='POST', body='oauth_callback=oob&oauth_verifier=%s' % tw_auth['oauth_verifier'][0])
+    
+    if resp['status'] != '200':
+        abort('The request for a Twitter token did not succeed: %s' % resp['status'])
+    
+    access_token = parse_qs(content)
+    return (access_token['oauth_token'][0], access_token['oauth_token_secret'][0])
+
+
 def _get_user_choice(title, values):
     """Print a list of values and get the user's choice"""
     
@@ -89,95 +156,37 @@ def _get_heroku_connection_string(app_name):
     local('heroku auth:whoami')
     
     # try mongolab first
-    conn = local('heroku config:get MONGOLAB_URI --app %s' % app_name, capture=True)
+    conn = local('heroku config:get MONGOHQ_URL --app %s' % app_name, capture=True)
     
     # if no mongolab, try mongohq
     if len(conn) == 0:
-        conn = local('heroku config:get MONGOHQ_URL --app %s' % app_name, capture=True)
+        conn = local('heroku config:get MONGOLAB_URI --app %s' % app_name, capture=True)
     
     return conn
 
 
 @task
-def add_new_poster(poster_app_name, poster_desc='', fb_app_id='', fb_app_secret='', tw_con_id='', tw_con_secret=''):
+def add_new_poster(poster_app_name, poster_desc='', fb_app_id=None, fb_app_secret=None, tw_con_id=None, tw_con_secret=None):
     """Adds a new poster to the given app's db and returns its new id so it can be set on opentaba-server instances"""
     
-    fb_token = ''
-    fb_page_id = ''
-    tw_token = ''
-    tw_secret = ''
+    fb_token = None
+    fb_page_id = None
+    tw_token = None
+    tw_secret = None
     
-    if len(fb_app_id) == 0 or len(fb_app_secret) == 0:
+    # Facebook tokens
+    if not (fb_app_id and fb_app_secret):
         print 'Warning: No Facebook page will be set, since app id and secret were not both provided'
     else:
-        # try to authenticate
-        fb_auth = _authorize_get_response('http://www.facebook.com/dialog/oauth?client_id=%s&redirect_uri=http://0.0.0.0:8080/&scope=manage_pages' % fb_app_id)
+        fb_token, fb_page_id = _get_facebook_token(fb_app_id, fb_app_secret)
         
-        if 'code' not in fb_auth.keys():
-            abort('Did not receive a token from Facebook! Did you decline authorization?')
-        
-        # get a short-term access token
-        graph = GraphAPI()
-        response = graph.get(
-            path='oauth/access_token',
-            client_id=fb_app_id,
-            client_secret=fb_app_secret,
-            redirect_uri='http://0.0.0.0:8080/',
-            code=fb_auth['code'][0]
-        )
-        data = parse_qs(response)
-        
-        # extend the token
-        extended_token = utils.get_extended_access_token(data['access_token'][0], fb_app_id, fb_app_secret)
-        graph = GraphAPI(extended_token[0])
-        
-        # get the accounts associated with the token (list of pages managed by the user)
-        pages = []
-        accounts = graph.get(path = 'me/accounts')
-        for entry in accounts['data']:
-            pages.append({'value': {'page_id': unicode(entry['id']), 'token': unicode(entry['access_token'])}, 'display': '%s - %s' % (unicode(entry['id']), unicode(entry['name']))})
-        
-        # get the user's selected page
-        selected_page = _get_user_choice('Select a page from your authorized ones: ', pages)
-        if selected_page:
-            fb_token = selected_page['token']
-            fb_page_id = selected_page['page_id']
-        
-    
-    if len(tw_con_id) == 0 or len(tw_con_secret) == 0:
+    # Twitter tokens
+    if not (tw_con_id and tw_con_secret):
         print 'Warning: No Twitter account will be set, since consumer id and secret were not both provided'
     else:
-        # get a temp token
-        oauth_consumer = oauth.Consumer(key=tw_con_id, secret=tw_con_secret)
-        oauth_client = oauth.Client(oauth_consumer)
-        resp, content = oauth_client.request('https://api.twitter.com/oauth/request_token', 'GET')
-        
-        if resp['status'] != '200':
-            abort('Invalid response from Twitter requesting temp token: %s' % resp['status'])
-        
-        # have the user authorize our app
-        request_token = parse_qs(content)
-        tw_auth = _authorize_get_response('https://api.twitter.com/oauth/authorize?oauth_token=%s&oauth_callback=http://0.0.0.0:8080/' % request_token['oauth_token'][0])
-        
-        if 'oauth_token' not in tw_auth.keys():
-            abort('Did not receive a token from Twitter! Did you decline authorization?')
-        
-        token = oauth.Token(tw_auth['oauth_token'][0], '')
-        token.set_verifier(tw_auth['oauth_verifier'][0])
-        
-        # get the access token for posting tweets by the user
-        oauth_consumer = oauth.Consumer(key=tw_con_id, secret=tw_con_secret)
-        oauth_client = oauth.Client(oauth_consumer, token)
-        resp, content = oauth_client.request('https://api.twitter.com/oauth/access_token', method='POST', body='oauth_callback=oob&oauth_verifier=%s' % tw_auth['oauth_verifier'][0])
-
-        if resp['status'] != '200':
-            abort('The request for a Twitter token did not succeed: %s' % resp['status'])
-        
-        access_token = parse_qs(content)
-        tw_token = access_token['oauth_token'][0]
-        tw_secret = access_token['oauth_token_secret'][0]
+        tw_token, tw_secret = _get_twitter_token(tw_con_id, tw_con_secret)
     
-    if len(fb_token) == 0 and len(tw_token) == 0:
+    if not fb_token and not tw_token:
         print 'No social credentials provided or selected. Cancelling...'
         return None
     else:
@@ -215,7 +224,7 @@ def add_new_poster(poster_app_name, poster_desc='', fb_app_id='', fb_app_secret=
         db.posters.insert(new_poster)
         
         # close db connection
-        db.close()
+        conn.close()
         
         print 'Added new poster with id %s successfuly!' % poster_id
         return poster_id
