@@ -31,13 +31,17 @@ def create_municipality(muni_name, display_name):
 
 
 @task
-def create_poster(muni_name, poster_app_name, poster_desc='', fb_app_id='', fb_app_secret='', tw_con_id='', tw_con_secret=''):
+def create_poster(muni_name, poster_app_name, poster_desc='', fb_app_id='', fb_app_secret='', tw_con_id='', tw_con_secret='', fb_link='', tw_link=''):
     """Create a new poster document on the poster server and set the needed environment variables on the opentaba-server instance"""
     
     poster_id = add_new_poster(poster_app_name, poster_desc, fb_app_id, fb_app_secret, tw_con_id, tw_con_secret)
     set_poster(muni_name, 'http://%s.herokuapp.com/' % poster_app_name, poster_id)
     
+    if len(fb_link) > 0 or len(tw_link) > 0:
+        update_client_social_links(muni_name, fb_link, tw_link)
+    
     print '*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*'
     print 'Done creating a new poster and setting the environment variables on the opentaba-server!'
-    print 'To set links to the Facebook and Twitter pages that will appear on the website, use'
-    print 'the update_client_social_links task'
+    print 'If not alreadey set, you can set links to the Facebook and Twitter pages that will '
+    print 'appear on the website using the update_client_social_links task'
+    print '*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*'

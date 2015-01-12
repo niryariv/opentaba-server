@@ -35,7 +35,8 @@ def _authorize_get_response(url):
     s.settimeout(30)
     
     # open the authorization page so the user can interact and authorize the app if needed
-    print 'About to open a new browser window or tab for authorization. Please switch to it and authorize the permission request'
+    print 'About to open a new browser window or tab for authorization'
+    print 'Please switch to it and authorize the permission request...'
     webbrowser.open_new(url)
     
     try:
@@ -72,7 +73,7 @@ def _get_user_choice(title, values):
         try:
             choice = int(raw_input('Enter choice: '))
         except ValueError:
-            print 'Please only enter integers from the given list'
+            print 'Please only enter integers from the given list!'
     
     # return it
     if choice == len(values):
@@ -99,7 +100,7 @@ def _get_heroku_connection_string(app_name):
 
 @task
 def add_new_poster(poster_app_name, poster_desc='', fb_app_id='', fb_app_secret='', tw_con_id='', tw_con_secret=''):
-    """ Adds a new poster to the given app's db and returns its new id so it can be set on opentaba-server instances """
+    """Adds a new poster to the given app's db and returns its new id so it can be set on opentaba-server instances"""
     
     fb_token = ''
     fb_page_id = ''
@@ -109,12 +110,13 @@ def add_new_poster(poster_app_name, poster_desc='', fb_app_id='', fb_app_secret=
     if len(fb_app_id) == 0 or len(fb_app_secret) == 0:
         print 'Warning: No Facebook page will be set, since app id and secret were not both provided'
     else:
-        # try to authenticate and get a token
+        # try to authenticate
         fb_auth = _authorize_get_response('http://www.facebook.com/dialog/oauth?client_id=%s&redirect_uri=http://0.0.0.0:8080/&scope=manage_pages' % fb_app_id)
         
         if 'code' not in fb_auth.keys():
             abort('Did not receive a token from Facebook! Did you decline authorization?')
         
+        # get a short-term access token
         graph = GraphAPI()
         response = graph.get(
             path='oauth/access_token',
@@ -181,8 +183,8 @@ def add_new_poster(poster_app_name, poster_desc='', fb_app_id='', fb_app_secret=
     else:
         # get connection string and connect to poster's db
         db_connection_string = _get_heroku_connection_string(poster_app_name)
-        m_conn = pymongo.Connection(db_connection_string)
-        db = m_conn[urlparse(db_connection_string).path[1:]]
+        conn = pymongo.Connection(db_connection_string)
+        db = conn[urlparse(db_connection_string).path[1:]]
         
         # generate an md5 string of the first token available for id
         m = md5.new()
@@ -211,6 +213,9 @@ def add_new_poster(poster_app_name, poster_desc='', fb_app_id='', fb_app_secret=
             new_poster['tw_con'] = tw_con_id
             new_poster['tw_csec'] = tw_con_secret
         db.posters.insert(new_poster)
+        
+        # close db connection
+        db.close()
         
         print 'Added new poster with id %s successfuly!' % poster_id
         return poster_id

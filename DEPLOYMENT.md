@@ -31,7 +31,12 @@ You can enable Facebook only, Twitter only or both.
 ###Environment Variables
 ####Poster
 To enable social posting, we must be configured to work with an instance of [opentaba-poster](https://github.com/florpor/opentaba-poster).
-To do that, we must make sure we are defined as a poster on the opentaba-poster app, and then set two environment variables -
+This can be done using a fabric task, onse we are sure we are defined as a poster on the opentaba-poster app:
+`fab set_poster:muni_name,poster_base_url,poster_id`
+example:
+`fab set_poster:holon,http://poster.service.com/,holon_id`
+
+It can also be done manually - just set the two environment variables -
 `POSTER_SERVICE_URL` must be set to the url of the opentaba-poster app, and `POSTER_ID` must be set to our assigned id, eg:
 ```
 heroku config:set POSTER_SERVICE_URL="http://poster.service.com/" --app opentaba-server-holon
@@ -84,6 +89,9 @@ heroku config:set POSTER_ID="holon_id" --app opentaba-server-holon
 + `fab sync_poster:muni_name,min_date` Run the [scripts/sync_poster.py](scripts/sync_poster.py) script on the given
   municipality's heroku app. min_date is the minimum date of plans to post, 
   and should be of the format: 1/1/2015.
++ `fab set_poster:muni_name,poster_base_url,poster_id` Set the required environment variables so
+  that the opentaba-server instance can communicate with an opentaba-poster one and post its plans 
+  to social media.
 
 ###Client
 + `fab create_client:muni_name,"display_name"` For client creation, all we need
@@ -94,3 +102,14 @@ heroku config:set POSTER_ID="holon_id" --app opentaba-server-holon
   branch to "publish" to every municipality's site (which are all in fact
   one site). display_name is only optional when updating an existing
   municipality's data, not for new municipalities.
++ `fab update_client_social_links:muni_name,facebook_link='',twitter_link=''` Update the client's
+  muni.js with links to Facebook, Twitter or both pages for the given municipality, then commit 
+  and push the changes to publish them.
+
+###Poster
++ `fab add_new_poster:poster_app_name,poster_desc='',fb_app_id='',fb_app_secret='',tw_con_id='',tw_con_secret=''`
+  Create a new poster record on an opentaba-poster server. Facebook details, Twitter details or both can be given.
+  This task will attempt to authorize you on the given social networks and get the necessary tokens for you, then
+  it will connect to the poster's database and add a new poster record for the given Facebook page and/or Twitter 
+  account. It will eventually return a poster id which you can set on an opentaba-server instance to have it post 
+  its plans through the opentaba-poster server.
