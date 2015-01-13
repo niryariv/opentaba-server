@@ -127,26 +127,47 @@ def update_client_social_links(muni_name, facebook_link='', twitter_link=''):
     
         # load the current municipalities' index dictionary
         with open(os.path.join('..', 'opentaba-client', 'munis.js')) as index_data:
-            index_json = loads(index_data.read().replace('var municipalities = ', '').rstrip('\n').rstrip(';'))
+            original_index_json = loads(index_data.read().replace('var municipalities = ', '').rstrip('\n').rstrip(';'))
         
-        if muni_name not in index_json.keys():
+        if muni_name not in original_index_json.keys():
             abort('Municipality not registered in muni.js file')
         
-        # set new links
-        index_json['fb_link'] = facebook_link
-        index_json['twitter_link'] = twitter_link
+        # copy the json
+        new_index_json = deepcopy(original_index_json)
         
-        # commit and push to origin
-        local('git add munis.js')
-        local('git commit -m "updated %s social links"' % muni_name)
-        local('git push origin master')
+        # set new links or remove existing ones
+        if len(facebook_link) > 0:
+            new_index_json[muni_name]['fb_link'] = facebook_link
+        elif 'fb_link' in new_index_json[muni_name].keys():
+            del new_index_json[muni_name]['fb_link']
         
-        # merge into gh-pages branch
-        local('git checkout gh-pages')
-        local('git merge master --no-edit')
-        local('git push origin gh-pages')
+        if len(twitter_link) > 0:
+            new_index_json[muni_name]['twitter_link'] = twitter_link
+        elif 'twitter_link' in new_index_json[muni_name].keys():
+            del new_index_json[muni_name]['twitter_link']
         
-        # back to master for work
-        local('git checkout master')
-
-        print 'Changes made to munis.js file, comitted and pushed to master and gh-pages'
+        # don't try to add, commit etc. if no changes were made
+        if dumps(new_index_json, sort_keys=True) == dumps(original_index_json, sort_keys=True):
+            warn('Social links were not changed. No changes were made to munis.js')
+        else:
+            # write back the munis.js file
+            out = open(os.path.join('..', 'opentaba-client', 'munis.js'), 'w')
+            out.write('var municipalities = ' + dumps(new_index_json, sort_keys=True, indent=4, separators=(',', ': ')) + ';')
+            out.flush()
+            os.fsync(out.fileno())
+            out.close()
+            
+            # commit and push to origin
+            local('git add munis.js')
+            local('git commit -m "updated %s social links"' % muni_name)
+            local('git push origin master')
+            
+            # merge into gh-pages branch
+            local('git checkout gh-pages')
+            local('git merge master --no-edit')
+            local('git push origin gh-pages')
+            
+            # back to master for work
+            local('git checkout master')
+            
+            print 'Changes made to munis.js file, comitted and pushed to master and gh-pages'

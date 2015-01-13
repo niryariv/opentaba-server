@@ -24,14 +24,23 @@ To change client configuration, you can edit `munis.js` manually later on, accor
      Index File syntax](http://github.com/niryariv/opentaba-client/blob/master/DEPLOYMENT.md#municipality-index-file).
 
 ##Automatic Facebook and Twitter Posting
-The server is able to post a plan's content to a Facebook page and Twitter feed every time a plan is created or updated, using a running instance of [opentaba-poster](https://github.com/florpor/opentaba-poster).
-To enable this feature, environment variables need to be set on the server with things like access tokens, consumer keys etc.
-You can enable Facebook only, Twitter only or both.
+The server is able to post a plan's content to a Facebook page and Twitter feed every time a plan is created or updated, using a running instance of [opentaba-poster](https://github.com/hasadna/opentaba-poster).
+To enable this feature, a poster must be registered with the needed tokens on the opentaba-poster instance, the opentaba-poster url and poster id must be set as 
+environment variables on the opentaba-server, and lastly it is possible to register the Facebook page and Twitter feed in the client to have the municipality's
+page link to them.
+It is possible to enable Facebook only, Twitter only or both.
 
-###Environment Variables
-####Poster
-To enable social posting, we must be configured to work with an instance of [opentaba-poster](https://github.com/florpor/opentaba-poster).
-This can be done using a fabric task, onse we are sure we are defined as a poster on the opentaba-poster app:
+###Registering a New Poster
+To register a new poster You must discover the page id and its access token for Facebook and the token and token secret for Twitter, and insert them in a new
+document into the opentaba-poster instance's database.
+You can do it manually, finding the necessary tokens using scripts available in the opentaba-poster repository, or use a fabric task provided in this repository:
+`add_new_poster:poster_app_name,poster_desc='',fb_app_id=None,fb_app_secret=None,tw_con_id=None,tw_con_secret=None`
+This task will do most of the work automatically (except authorize the Facebook and Twitter apps to use your accounts) and will output the new poster's id.
+desc is not needed but will be useful to identify different posters in the database, and you must provide at least one of the couple of fb\tw parameters.
+
+###Making an opentaba-server Post
+To enable social posting, we must be configured to work with an instance of opentaba-poster, and supply it with out poster id.
+This can be done using a fabric task, once we are sure we are defined as a poster on the opentaba-poster app:
 `fab set_poster:muni_name,poster_base_url,poster_id`
 example:
 `fab set_poster:holon,http://poster.service.com/,holon_id`
@@ -42,6 +51,15 @@ It can also be done manually - just set the two environment variables -
 heroku config:set POSTER_SERVICE_URL="http://poster.service.com/" --app opentaba-server-holon
 heroku config:set POSTER_ID="holon_id" --app opentaba-server-holon
 ```
+
+###Linking To The Social Pages From The Municipality's Page
+Finally (and optionally), it is possible to link from the municipality's [opentaba-client](http://github.com/niryariv/opentaba-client) page to the Facebook page and Twitter
+feed its plans are being published to using the top-right corner links.
+This can be done with a fabric task:
+`update_client_social_links:muni_name,facebook_link='',twitter_link=''`
+(notice that empty links will not be ignored, but will instead be set to empty so the link will not appear)
+Or it can be done manually by editing the [muni.js](http://github.com/niryariv/opentaba-client/blob/master/munis.js) file in opentaba-client and adding the links under your municipality.
+Key names are `fb_link` and `twitter_link`, as can be seen in Jerusalem's entry.
 
 ##All Fabric Tasks
 ###Server
