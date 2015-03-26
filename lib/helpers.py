@@ -4,7 +4,6 @@
 Helpers for our web and worker (scraper) instances
 """
 
-from werkzeug.contrib.atom import AtomFeed
 from flask import make_response
 import json
 from bson import json_util
@@ -12,6 +11,7 @@ import datetime
 import pymongo
 
 from conn import db
+from taba_feed import TabaAtomFeed
 
 
 def _get_plans(count=1000, query={}):
@@ -45,7 +45,7 @@ def _create_response_atom_feed(request, plans, feed_title=''):
     """
     Create an atom feed of plans fetched from the DB based on an optional query
     """
-    feed = AtomFeed(feed_title, feed_url=request.url, url=request.url_root)
+    feed = TabaAtomFeed(feed_title, feed_url=request.url, url=request.url_root)
 
     for p in plans:
         formatted = _format_plan(p, request.url_root)
@@ -61,7 +61,9 @@ def _create_response_atom_feed(request, plans, feed_title=''):
             # this is a unique ID (not real URL) so adding status to ensure uniqueness in TBA stages
             url=formatted['url'],
             links=formatted['links'],
-            updated=formatted['last_update']
+            updated=formatted['last_update'],
+            published=formatted['last_update'],
+            tags=formatted['gushim']
         )
 
     return feed
@@ -100,6 +102,9 @@ def _format_plan(plan, server_root=None):
     
     # plan last update
     formatted_plan['last_update'] = datetime.date(plan['year'], plan['month'], plan['day'])
+    
+    # gushim list to be used as tags
+    formatted_plan['gushim'] = plan['gushim']
     
     return formatted_plan
 
