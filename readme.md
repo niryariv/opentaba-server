@@ -9,6 +9,7 @@ The code is Flask based, working with MongoDB as database, Uses redis to handle 
     git clone git@github.com:niryariv/opentaba-server.git
     cd opentaba-server
     virtualenv .
+    apt-get install libmemcached-dev
     pip install -r requirements.txt
     mkdir filecache
     python app.py
