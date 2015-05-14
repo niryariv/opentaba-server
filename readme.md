@@ -19,7 +19,7 @@ Notice that if you are running this on a local dev machine you need to have mong
 
 If you get an error like... 
 "install --record /tmp/pip-Wtu_Ol-record/install-record.txt --single-version-externally-managed --compile" failed with error code 1 in /tmp/pip-build-K3lO1y/lxml"
-...you might need to install libmemcache (for example 'apt-get install libmemcached-dev' in Ubuntu"
+...you might need to install libmemcache (for example 'apt-get install libmemcached-dev' in Ubuntu")
 
 #### Create initial DB
 
