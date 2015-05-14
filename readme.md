@@ -9,11 +9,18 @@ The code is Flask based, working with MongoDB as database, Uses redis to handle 
     git clone git@github.com:niryariv/opentaba-server.git
     cd opentaba-server
     virtualenv .
+    apt-get install libmemcached-dev
     pip install -r requirements.txt
     mkdir filecache
     python app.py
 
 Notice that if you are running this on a local dev machine you need to have mongodb running and listening in port 27017
+
+
+If you get an error like... 
+"install --record /tmp/pip-Wtu_Ol-record/install-record.txt --single-version-externally-managed --compile" failed with error code 1 in /tmp/pip-build-K3lO1y/lxml"
+...you might need to install libmemcache (for example 'apt-get install libmemcached-dev' in Ubuntu")
+
 #### Create initial DB
 
     python scripts/create_db --force -m [all | <muni>]
