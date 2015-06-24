@@ -147,7 +147,7 @@ def redirect_to_mavat(plan_id):
     mavat website using an auto-sending form
     """
     try: 
-        plans = _get_plans(count=1, query={'plan_id': int(plan_id)})
+        plans = helpers._get_plans(count=1, query={'plan_id': int(plan_id)})
     except ValueError: # plan_id is not an int
         abort(400)
     except: # DB error
