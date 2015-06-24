@@ -4,7 +4,6 @@
 from flask import *
 from app import app
 from nose.tools import eq_, assert_true
-from nose import with_setup
 import json
 
 
