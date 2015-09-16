@@ -8,7 +8,7 @@ from rq import Worker, Queue, Connection
 import logging
 
 listen = ['high', 'default', 'low']
-redis_url = os.getenv('REDISTOGO_URL', 'redis://localhost:6379')
+redis_url = os.environ.get('REDISCLOUD_URL') or os.environ.get('REDISTOGO_URL') or 'redis://localhost:6379'
 redis_conn = redis.from_url(redis_url)
 
 if __name__ == '__main__':

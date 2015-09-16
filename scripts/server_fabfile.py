@@ -55,7 +55,7 @@ def create_server(muni_name, display_name):
     update_gushim_server(muni_name)
     
     # create a new heroku app with the needed addons
-    local('heroku apps:create %s --addons scheduler:standard,memcachedcloud:25,mongolab:sandbox,redistogo:nano' % full_name)
+    local('heroku apps:create %s --addons scheduler:standard,memcachedcloud:30,mongolab:sandbox,rediscloud:30' % full_name)
     
     # set the server's display name
     local('heroku config:set MUNICIPALITY_NAME="%s" --app %s' % (display_name, full_name))
@@ -73,6 +73,18 @@ def create_server(muni_name, display_name):
     print '1X dyno, daily frequency, next run 04:00'
     print '*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*'
     local('heroku addons:open scheduler --app %s' % full_name)
+    
+    # wait for user to finish
+    raw_input('Press enter for next step...')
+    
+    # set rediscloud's data eviction policy to "allkeys lru"
+    print '*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*'
+    print 'You must now change RedisCloud\'s configuration for our jobs to be queued'
+    print 'and flushed properly. Click on the Redis instance (the top one), then hit the'
+    print '"Edit" button on the bottom of the page. Change the data eviction policy to'
+    print '"allkeys lru", and finally hit "Update".'
+    print '*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*X*'
+    local('heroku addons:open rediscloud --app %s' % full_name)
 
 
 @task
