@@ -20,7 +20,7 @@ def _get_plans(count=1000, query={}):
 
 
 def _get_gushim(query={}, fields=None):
-    return list(db.gushim.find(query, fields=fields))
+    return list(db.gushim.find(query, projection=fields))
 
 
 def _get_plan_statistics():

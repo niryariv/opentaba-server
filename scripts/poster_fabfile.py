@@ -192,7 +192,7 @@ def add_new_poster(poster_app_name, poster_desc='', fb_app_id=None, fb_app_secre
     else:
         # get connection string and connect to poster's db
         db_connection_string = _get_heroku_connection_string(poster_app_name)
-        conn = pymongo.Connection(db_connection_string)
+        conn = pymongo.MongoClient(db_connection_string)
         db = conn[urlparse(db_connection_string).path[1:]]
         
         # generate an md5 string of the first token available for id
