@@ -156,7 +156,7 @@ def redirect_to_mavat(plan_id):
     if plans is None or len(plans) == 0 or plans[0]['mavat_code'] == '':
         abort(404)
     
-    return ('<html><body>'
+    return make_response('<html><body>'
             '<form action="http://mavat.moin.gov.il/MavatPS/Forms/SV4.aspx?tid=4" method="post" name="redirect_form">'
             '<input type="hidden" name="PL_ID" value="' + plans[0]['mavat_code'] + '">'
             '</form><script language="javascript">document.redirect_form.submit();</script></body></html>')
