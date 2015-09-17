@@ -213,10 +213,10 @@ def add_new_poster(poster_app_name, poster_desc='', fb_app_id=None, fb_app_secre
         
         # build the new poster's document and insert it into the db
         new_poster = {'id': poster_id, 'desc': poster_desc}
-        if len(fb_token) > 0:
+        if fb_token and len(fb_token) > 0:
             new_poster['fb_tok'] = fb_token
             new_poster['fb_page'] = fb_page_id
-        if len(tw_token) > 0:
+        if tw_token and len(tw_token) > 0:
             new_poster['tw_tok'] = tw_token
             new_poster['tw_tsec'] = tw_secret
             new_poster['tw_con'] = tw_con_id
