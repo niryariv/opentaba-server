@@ -173,7 +173,7 @@ def deploy_server_all():
 
     for server in _get_servers():
         print 'Deploying app: %s...' % server
-        local('git push git@heroku.com:%s.git master' % server)
+        local('git push git@heroku.com:%s.git master --force' % server)
 
 
 @task
