@@ -20,18 +20,18 @@ def _setup_cache(app):
     scenario, and eventually the cache will be replaced with a NullCache. Binary communications must
     be used for SASL.
     """
-    
+
     # initialize the retry count if it's our first time here
     if not hasattr(app, 'cache_retry'):
         app.cache_retry = 0
-    
+
     # Setup cache
     if app.config['TESTING'] or os.environ.get('DISABLE_CACHE', None) is not None:
         app.cache = NullCache()
         app.logger.debug('Cache initialized as NullCache')
     else:
         MEMCACHED_SERVERS = os.environ.get('MEMCACHEDCLOUD_SERVERS', '127.0.0.1:11211')
-        
+
         try:
             memcached_client = Client(servers=MEMCACHED_SERVERS.split(','),
                                       username=os.environ.get('MEMCACHEDCLOUD_USERNAME'),
@@ -63,7 +63,7 @@ def cached(app, timeout=3600, cache_key=None, set_expires=True):
             ek = '%s.expires' % ck
             response = None
             expires = None
-            
+
             # pylibmc will throw an error when trying to communicate with memcached, not upon a bad connection
             try:
                 cached = app.cache.get_many(ck, ek)
@@ -84,7 +84,7 @@ def cached(app, timeout=3600, cache_key=None, set_expires=True):
                 app.logger.error('Cache error, returning miss: %s', e)
                 if response is None:
                     response = f(*args, **kwargs)
-                
+
                 if (type(app.cache) is not NullCache):
                     if (app.cache_retry < MAX_CACHE_RETRIES):
                         app.cache_retry += 1
