@@ -5,6 +5,7 @@ set -e
 sed -i 's/daemonize no/daemonize yes/g' /etc/redis.conf
 redis-server /etc/redis.conf
 mongod --fork --logpath /tmp/mongo.log
+memcached -u root -d -m 1024 -p 11211
 
 cd /opt/opentaba-server
 first_run=$(mongo --quiet --eval "db.getSiblingDB('citymap').plans.count()")
