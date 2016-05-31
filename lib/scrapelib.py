@@ -120,15 +120,15 @@ def extract_data(gush_json):
         if plan['Takanon'] is not None:
             bs = BeautifulSoup(plan['Takanon'], 'lxml')
             for i in bs('a'):
-                rec['takanon_link'].append('http://mmi.gov.il' + i.get('href'))
+                rec['takanon_link'].append(i.get('href'))
 
         bs = BeautifulSoup(plan['Tasrit'], 'lxml')
         for i in bs('a'):
-            rec['tasrit_link'].append('http://mmi.gov.il' + i.get('href'))
+            rec['tasrit_link'].append(i.get('href'))
 
         bs = BeautifulSoup(plan['Nispach'], 'lxml')
         for i in bs('a'):
-            rec['nispahim_link'].append('http://mmi.gov.il' + i.get('href'))
+            rec['nispahim_link'].append(i.get('href'))
 
         if plan['Mmg'] is not None:
             bs = BeautifulSoup(plan['Mmg'], 'lxml')
