@@ -120,20 +120,20 @@ def extract_data(gush_json):
         if plan['Takanon'] is not None:
             bs = BeautifulSoup(plan['Takanon'], 'lxml')
             for i in bs('a'):
-                rec['takanon_link'].append(i.get('href'))
+                rec['takanon_link'].append(i.get('href').replace('\\', '/'))
 
         bs = BeautifulSoup(plan['Tasrit'], 'lxml')
         for i in bs('a'):
-            rec['tasrit_link'].append(i.get('href'))
+            rec['tasrit_link'].append(i.get('href').replace('\\', '/'))
 
         bs = BeautifulSoup(plan['Nispach'], 'lxml')
         for i in bs('a'):
-            rec['nispahim_link'].append(i.get('href'))
+            rec['nispahim_link'].append(i.get('href').replace('\\', '/'))
 
         if plan['Mmg'] is not None:
             bs = BeautifulSoup(plan['Mmg'], 'lxml')
             for i in bs('a'):
-                url = i.get('href')
+                url = i.get('href').replace('\\', '/')
                 if url.endswith('.zip'):
                     rec['files_link'].append(url)
                 elif 'PopUpMmg' in url:
