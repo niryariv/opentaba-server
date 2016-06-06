@@ -1,9 +1,9 @@
-#!/usr/bin/bash
+#!/bin/bash
 
 set -e
 
-sed -i 's/daemonize no/daemonize yes/g' /etc/redis.conf
-redis-server /etc/redis.conf
+sed -i 's/daemonize no/daemonize yes/g' /etc/redis/redis.conf
+redis-server /etc/redis/redis.conf
 mongod --fork --logpath /tmp/mongo.log
 memcached -u root -d -m 1024 -p 11211
 
