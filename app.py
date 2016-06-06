@@ -126,8 +126,15 @@ def atom_feed_gush(gushim):
         gushim_query = {'gushim': {'$in': gushim}}
     else:
         gushim_query = {'gushim': gushim[0]}
-    
-    return helpers._create_response_atom_feed(request, helpers._get_plans(query=gushim_query), feed_title=u'תב״ע פתוחה - גוש %s' % ', '.join(gushim)).get_response()
+
+    # set the feed title to include municaplity name
+    if 'MUNICIPALITY_NAME' in os.environ.keys():
+        municaplity_name = os.environ['MUNICIPALITY_NAME'].decode('utf-8')
+        title = u'תב"ע פתוחה (%s) - גוש %s' % (municaplity_name,', '.join(gushim))
+    else:
+        title = u'תב"ע פתוחה - גוש %s' % (','.join(gushim))
+
+    return helpers._create_response_atom_feed(request, helpers._get_plans(query=gushim_query), feed_title=title).get_response()
 
 
 @app.route('/plans/search/<path:plan_name>')
