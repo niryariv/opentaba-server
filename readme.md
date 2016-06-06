@@ -5,7 +5,7 @@ This is the server part for http://github.com/niryariv/opentaba-client
 The code is Flask based, working with MongoDB as database, Uses redis to handle queue. written to run on Heroku.
 
 ## Installation
-
+#### Manual
     git clone git@github.com:niryariv/opentaba-server.git
     cd opentaba-server
     virtualenv .
@@ -13,9 +13,32 @@ The code is Flask based, working with MongoDB as database, Uses redis to handle 
     mkdir filecache
     python app.py
 
-Notice that if you are running this on a local dev machine you need to have mongodb running and listening in port 27017
-#### Create initial DB
+#### Docker
+    git clone git@github.com:niryariv/opentaba-server.git
+    cd opentaba-server
+    docker build -t hasadna/opentaba-server .
+    docker run -t -d -p 5000:5000 -v XMONGOX:/data/db hasadna/opentaba-server
+    
+_XMONGOX_: This will hold the Mongo database files on your local filesystem path (not in the docker container).
+Provide an **absolute path** available on the local filesystem (e.g: _/mnt/data/db_).
+it is possible to omit the _-v XMONGOX:/data/db_ but then it means that when the container exits and removed all the scraped data is lost.
 
+You can _tail_ the output of the container and wait until the flask server is up by:
+
+    docker logs -f CONTAINER_ID
+
+_CONTAINER_ID_ is the _hasadna/opentaba-server_ container id found by running:
+
+    docker ps
+
+You can also run the container without starting the server ( _python app.py_ ) by adding _-e RUN_SERVER=0_ to the command:
+
+    docker run -t -d -p 5000:5000 -e RUN_SERVER=0 -v XMONGOX:/data/db hasadna/opentaba-server
+
+You can then _exec_ to the running container (see below) and run it manually.
+
+## Create initial DB
+#### Manual
 Make sure mongo daemon (mongod) is running.
 
     mongo
@@ -23,8 +46,11 @@ Make sure mongo daemon (mongod) is running.
     exit
     python scripts/create_db.py --force -m [all | <muni>]
 
-#### Scrape data into DB
+#### Docker
+Already done (with _-m all_) and not needed.
 
+## Scrape data into DB
+#### Manual
 1. Queue scrape task
 2. Run Heroku worker on tasks
 
@@ -38,6 +64,15 @@ On Heroku:
 
     heroku run python scrape.py -g [all | <gush_id>]
     heroku run worker
+
+#### Docker
+First fine the container Id (CONTAINER_ID) of the running instance ( _docker ps_ ). when you have it:
+    
+    docker exec -ti CONTAINER_ID /bin/bash
+    cd /opt/opentaba-server
+    python scrape.py -g [all | <gush_id>]
+    python worker.py
+
 
 ##Testing
 
