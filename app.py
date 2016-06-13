@@ -106,11 +106,8 @@ def get_recent_plans():
 @app.route('/plans.atom')
 @cached(app, timeout=3600)
 def atom_feed():
-    if 'MUNICIPALITY_NAME' in os.environ.keys():
-        title = u'תב"ע פתוחה - %s' % os.environ['MUNICIPALITY_NAME'].decode('utf-8')
-    else:
-        title = u'תב"ע פתוחה'
-    
+    muni_name = os.environ.get('MUNICIPALITY_NAME', '').decode('utf-8')
+    title = u'תב"ע פתוחה - %s' % muni_name if muni_name else u'תב"ע פתוחה'
     return helpers._create_response_atom_feed(request, helpers._get_plans(count=20), feed_title=title).get_response()
 
 
@@ -127,7 +124,9 @@ def atom_feed_gush(gushim):
     else:
         gushim_query = {'gushim': gushim[0]}
     
-    return helpers._create_response_atom_feed(request, helpers._get_plans(query=gushim_query), feed_title=u'תב״ע פתוחה - גוש %s' % ', '.join(gushim)).get_response()
+    muni_name = os.environ.get('MUNICIPALITY_NAME', '').decode('utf-8')
+    title = u'תב"ע פתוחה - %s - גוש %s' % (muni_name, ', '.join(gushim)) if muni_name else u'תב"ע פתוחה - גוש %s' % ', '.join(gushim)
+    return helpers._create_response_atom_feed(request, helpers._get_plans(query=gushim_query), feed_title=title).get_response()
 
 
 @app.route('/plans/search/<path:plan_name>')
