@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import logging
+
 import requests
 from bs4 import BeautifulSoup
 import lxml
@@ -10,7 +12,7 @@ from helpers import parse_challenge
 
 
 SITE_ENCODING = 'windows-1255'
-
+logger = logging.getLogger('challenge')
 
 def get_mmi_gush_json(gush_id):
     """
@@ -24,6 +26,8 @@ def get_mmi_gush_json(gush_id):
     # Solve the challenge if needed
     if 'X-AA-Challenge' in r.text:
         challenge = parse_challenge(r.text)
+        logger.warning('Text: %s' % r.text)
+        logger.warning('Got challenge: %s' % challenge)
         r = ses.get('http://mmi.gov.il/IturTabot2/taba1.aspx', headers={
             'X-AA-Challenge': challenge['challenge'],
             'X-AA-Challenge-ID': challenge['challenge_id'],

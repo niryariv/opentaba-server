@@ -122,8 +122,8 @@ def get_challenge_answer(challenge):
     """
     Solve the math part of the challenge and get the result
     """
-    arr = list(challenge)[::-1]
-    last_digit = int(arr[0])
+    arr = list(challenge)
+    last_digit = int(arr[-1])
     arr.sort()
     min_digit = int(arr[0])
     subvar1 = (2 * int(arr[2])) + int(arr[1])
