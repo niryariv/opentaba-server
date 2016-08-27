@@ -6,6 +6,8 @@ import lxml
 import re
 import json
 
+from helpers import parse_challenge
+
 
 SITE_ENCODING = 'windows-1255'
 
@@ -18,8 +20,17 @@ def get_mmi_gush_json(gush_id):
 
     # Get the base search page and save the aspx session cookie, data source and view state
     r = ses.get('http://mmi.gov.il/IturTabot2/taba1.aspx')
+    
+    # Solve the challenge if needed
+    if 'X-AA-Challenge' in r.text:
+        challenge = parse_challenge(r.text)
+        r = ses.get('http://mmi.gov.il/IturTabot2/taba1.aspx', headers={
+            'X-AA-Challenge': challenge['challenge'],
+            'X-AA-Challenge-ID': challenge['challenge_id'],
+            'X-AA-Challenge-Result': challenge['challenge_result']
+        })
+    
     yum = r.cookies
-    # print 'GET http://mmi.gov.il/IturTabot2/taba1.aspx', r.text
 
     data_source = re.findall(r'tblView_[A-Za-z0-9]+', r.text)[-1]
 
