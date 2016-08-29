@@ -33,6 +33,13 @@ def get_mmi_gush_json(gush_id):
             'X-AA-Challenge-ID': challenge['challenge_id'],
             'X-AA-Challenge-Result': challenge['challenge_result']
         })
+        
+        logger.warning('Second text: %s' % r.text)
+        
+        # Yet another request...
+        yum = r.cookies
+        r = ses.get('http://mmi.gov.il/IturTabot2/taba1.aspx', cookies=yum)
+        logger.warning('Third text: %s' % r.text)
     
     yum = r.cookies
 
