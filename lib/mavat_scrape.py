@@ -10,6 +10,7 @@ from helpers import parse_challenge
 
 
 SITE_ENCODING = 'windows-1255'
+BASE_URL = 'http://mavat.moin.gov.il/MavatPS/Forms/SV3.aspx?tid=3'
 # Earliest meeting date to filter plans by
 FROM_MEETING_DATE_FILTER = '01/01/2010'
 
@@ -24,16 +25,20 @@ def get_mavat_gush_json(gush_id):
     ses = requests.Session()
 
     # Get the base search page and save the aspx session cookie
-    r = ses.get('http://mavat.moin.gov.il/MavatPS/Forms/SV3.aspx?tid=3')
+    r = ses.get(BASE_URL)
     
     # Solve the challenge if needed
     if 'X-AA-Challenge' in r.text:
         challenge = parse_challenge(r.text)
-        r = ses.get('http://mavat.moin.gov.il/MavatPS/Forms/SV3.aspx?tid=3', headers={
+        r = ses.get(BASE_URL, headers={
             'X-AA-Challenge': challenge['challenge'],
             'X-AA-Challenge-ID': challenge['challenge_id'],
             'X-AA-Challenge-Result': challenge['challenge_result']
         })
+        
+        # Yet another request, this time with the BotMitigationCookie cookie
+        yum = r.cookies
+        r = ses.get(BASE_URL, cookies=yum)
     
     yum = r.cookies
 
@@ -109,7 +114,7 @@ def get_mavat_gush_json(gush_id):
             request_data.pop('ctl00$ContentPlaceHolder1$btnFilter.y', None)
 
         # Search plans by gush id
-        r = ses.post('http://mavat.moin.gov.il/MavatPS/Forms/SV3.aspx?tid=3', headers={'Content-Type':'application/x-www-form-urlencoded'}, 
+        r = ses.post(BASE_URL, headers={'Content-Type':'application/x-www-form-urlencoded'}, 
             cookies=yum, data=request_data)
         
         # On the first page, get the total number of pages if it exists

@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import logging
-
 import requests
 from bs4 import BeautifulSoup
 import lxml
@@ -12,7 +10,8 @@ from helpers import parse_challenge
 
 
 SITE_ENCODING = 'windows-1255'
-logger = logging.getLogger('challenge')
+BASE_URL = 'http://mmi.gov.il/IturTabot2/taba1.aspx'
+
 
 def get_mmi_gush_json(gush_id):
     """
@@ -21,25 +20,20 @@ def get_mmi_gush_json(gush_id):
     ses = requests.Session()
 
     # Get the base search page and save the aspx session cookie, data source and view state
-    r = ses.get('http://mmi.gov.il/IturTabot2/taba1.aspx')
+    r = ses.get(BASE_URL)
     
     # Solve the challenge if needed
     if 'X-AA-Challenge' in r.text:
         challenge = parse_challenge(r.text)
-        logger.warning('Text: %s' % r.text)
-        logger.warning('Got challenge: %s' % challenge)
-        r = ses.get('http://mmi.gov.il/IturTabot2/taba1.aspx', headers={
+        r = ses.get(BASE_URL, headers={
             'X-AA-Challenge': challenge['challenge'],
             'X-AA-Challenge-ID': challenge['challenge_id'],
             'X-AA-Challenge-Result': challenge['challenge_result']
         })
         
-        logger.warning('Second text: %s' % r.text)
-        
-        # Yet another request...
+        # Yet another request, this time with the BotMitigationCookie cookie
         yum = r.cookies
-        r = ses.get('http://mmi.gov.il/IturTabot2/taba1.aspx', cookies=yum)
-        logger.warning('Third text: %s' % r.text)
+        r = ses.get(BASE_URL, cookies=yum)
     
     yum = r.cookies
 
@@ -49,7 +43,7 @@ def get_mmi_gush_json(gush_id):
     view_state = html('input', id='__VIEWSTATE')[0]['value']
 
     # Tell the server which fields we are displaying
-    r = ses.post('http://mmi.gov.il/IturTabot2/taba1.aspx', cookies=yum, data={
+    r = ses.post(BASE_URL, cookies=yum, data={
         'scriptManagerId_HiddenField':None,
         '__EVENTTARGET':None,
         '__EVENTARGUMENT':None,
