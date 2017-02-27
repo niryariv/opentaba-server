@@ -112,7 +112,7 @@ def parse_challenge(page):
     some math stuff and send the result as a header to actually get the page.
     This logic is pretty much copied from https://github.com/R3dy/jigsaw-rails/blob/master/lib/breakbot.rb
     """
-    top = page.split('<script>')[1].split('\r\n')
+    top = page.split('<script>')[1].split('\n')
     challenge = top[1].split(';')[0].split('=')[1]
     challenge_id = top[2].split(';')[0].split('=')[1]
     return {'challenge': challenge, 'challenge_id': challenge_id, 'challenge_result': get_challenge_answer(challenge)}
