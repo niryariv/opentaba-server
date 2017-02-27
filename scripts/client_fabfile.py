@@ -22,9 +22,10 @@ def _get_muni_center(features):
     for f in features:
         for cgroup in f['geometry']['coordinates']:
             for coord in cgroup:
-                sum_x += coord[0]
-                sum_y += coord[1]
-                count += 1
+                if type(coord[0]) == float and type(coord[1]) == float:
+                    sum_x += coord[0]
+                    sum_y += coord[1]
+                    count += 1
 
     return [eval('{:.6f}'.format(sum_y / count)), eval('{:.6f}'.format(sum_x / count))]
 
@@ -42,15 +43,16 @@ def _get_muni_bounds(features):
     for f in features:
         for cgroup in f['geometry']['coordinates']:
             for coord in cgroup:
-                if coord[0] < min_x:
-                    min_x = coord[0]
-                if coord[0] > max_x:
-                    max_x = coord[0]
-                
-                if coord[1] < min_y:
-                    min_y = coord[1]
-                if coord[1] > max_y:
-                    max_y = coord[1]
+                if type(coord[0]) == float and type(coord[1]) == float:
+                    if coord[0] < min_x:
+                        min_x = coord[0]
+                    if coord[0] > max_x:
+                        max_x = coord[0]
+                    
+                    if coord[1] < min_y:
+                        min_y = coord[1]
+                    if coord[1] > max_y:
+                        max_y = coord[1]
 
     return [[eval('{:.6f}'.format(min_y)), eval('{:.6f}'.format(min_x))], [eval('{:.6f}'.format(max_y)), eval('{:.6f}'.format(max_x))]]
 
