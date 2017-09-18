@@ -10,7 +10,7 @@ from helpers import parse_challenge
 
 
 SITE_ENCODING = 'windows-1255'
-BASE_URL = 'http://mmi.gov.il/IturTabot2/taba1.aspx'
+BASE_URL = 'http://apps.land.gov.il/iturTabot2/taba1.aspx'
 
 
 def get_mmi_gush_json(gush_id):
@@ -81,7 +81,7 @@ def get_mmi_gush_json(gush_id):
 
     # Send a parameterized request to the server (just search for the gush)
     r = ses.post(
-        'http://mmi.gov.il/IturTabot2/taba1.aspx/getNetuneiTochniotByAllParames', 
+        '%s/getNetuneiTochniotByAllParames' % BASE_URL, 
         headers={'Content-Type':'application/json'}, 
         cookies=yum, 
         data=json.dumps({
@@ -110,7 +110,7 @@ def get_mmi_gush_json(gush_id):
 
 def get_mmi_gush_json_page(requests_session, page_num, cookie, view_state, data_source):
     r = requests_session.post(
-        'http://mmi.gov.il/IturTabot2/taba1.aspx', 
+        BASE_URL, 
         cookies=cookie, 
         data={'scriptManagerId_HiddenField':None,'__EVENTTARGET':None,'__EVENTARGUMENT':None,'__VIEWSTATE':view_state,'cpe_ClientState':None,'txtMsTochnit':None,'cmsStatusim$textBox':None,'txtGush':None,'txtwinCal1$textBox':None,'txtwinCal1$popupWin$time':None,'txtwinCal1$popupWin$mskTime_ClientState':None,'txtFromHelka':None,'txtwinCal2$textBox':None,'txtwinCal2$popupWin$time':None,'txtwinCal2$popupWin$mskTime_ClientState':None,'txtMakom':None,'cmsMerchaveiTichnun$textBox':None,'cmsYeudRashi$textBox':None,'txtMatara':None,'cmsYeshuvim$textBox':None,'cmsKodAchrai$textBox':None,'cmsTakanon$textBox':None,'txtAchrai':None,'cmsSug$textBox':None,'cmsMmg$textBox':None,'cmsKodMetachnen$textBox':None,'cmsTasrit$textBox':None,'txtMetachnen':None,'__CALLBACKID':'scriptManagerId',
             '__CALLBACKPARAM':'Mmi.Tashtiot.UI.AjaxComponent.TableView$#$~$#$GetData$#${"P0":"'+data_source+'","P1":'+str(page_num)+',"P2":-1,"P3":["mtysvShemYishuv","Link","Status","tbMahut","Takanon","Tasrit","Nispach","Mmg","tbMakom","tbYechidotDiur","mtmrthTirgumMerchav","mtstTargumSugTochnit","svtTargumSugVaadatTichnun","tbTochnitId", "tbMsTochnit"],"P4":"~","P5":"~","P6":true,"P7":true}'

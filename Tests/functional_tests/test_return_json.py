@@ -30,7 +30,7 @@ def test_api_gushim():
     response = testapp.get('/gushim.json')
     print(dir(response))
     j = json.loads(response.data)
-    eq_(len(j), 3147)  # the correct number
+    eq_(len(j), 3145)  # the correct number
     eq_(response.status_code, 200)
     eq_(response.mimetype, 'application/json')
 
@@ -50,10 +50,11 @@ def test_api_get_plan():
     eq_(response.status_code, 200)
     eq_(response.mimetype, 'application/json')
 
-    # I don't know the correct number, since it's changes with each update, but it should be more then this
+    # I don't know the correct number since it changes with each update, but it should be more than this
     assert_true(len(j) >= 10)
 
-    sample = j[1]
+    # Take the last plan so that we're more likely to keep getting the same one
+    sample = j[-1]
 	
     eq_(sorted(sample.keys()), [u'_id',
                                 u'area',
@@ -82,14 +83,14 @@ def test_api_get_plan():
 
     #eq_(sample['status'], u"פרסום בעיתונות להפקדה ")
     assert_true('30649' in sample['gushim'])
-    eq_(sample['plan_id'], 1013794);
+    eq_(sample['plan_id'], 1005158);
     msg = 'taba2.aspx'
     assert_true(msg in sample['details_link'])
-    eq_(sample['takanon_link'], [u'http://mmi.gov.il/IturTabotData/takanonim/jerus/1013794.pdf'])
+    eq_(sample['takanon_link'], [u'/IturTabotData/takanonim/jerus/1005158.pdf'])
     # eq_(sample['essence'], u"השלמת קומה והרחבות דיור")
 
 
-def test_api_get_plan():
+def test_api_get_other_plan():
     response = testapp.get('/gush/30649,28107/plans.json')
     j = json.loads(response.data)
     eq_(response.status_code, 200)

@@ -117,73 +117,102 @@ Get plans for a block:
     GET /gush/30540/plans.json
 
     [
-    {
-        "status": "פרסום תוקף ברשומות ",
-        "tasrit_link": [
-            "http://mmi.gov.il//IturTabotData/tabot/jerus/1011879_K.pdf",
-            "http://mmi.gov.il//IturTabotData/tabot/jerus/1011879_M.pdf"
+      {
+        "gushim": [
+          "30540"
         ],
-        "gush_id": "30540",
+        "housing_units": 0,
+        "essence": "התוויה, סלילה והקמה של תוואי הרכבת הקלה",
+        "number": "101-0209593",
+        "month": 1,
+        "year": 2017,
+        "plan_id": 1014826,
         "area": "ירושלים",
-        "essence": "איצטדיון אולימפי לאומי לאתלטיקה",
-        "files_link": [
-            "/IturTabotData/download/jerus/1011879.zip"
+        "mavat_meetings": [
+          {
+            "institute": "ועדה מחוזית לתכנון ולבניה מחוז ירושלים - ועדת משנה להתנגדויות",
+            "date": "28/06/2016",
+            "p_type": "unknown",
+            "number": "2016040",
+            "p_link": "http://mavat.moin.gov.il/MavatPS/Forms/Attachment.aspx?edid=77000153712813&edn=6467AAFEC7FCB52AC0015EDD49BA72FF0F58CBE314181F5497E0E34313A7A246"
+          },
+          {
+            "institute": "ועדה מחוזית לתכנון ולבניה מחוז ירושלים - ועדת משנה להתנגדויות",
+            "date": "14/06/2016",
+            "p_type": "unknown",
+            "number": "2016037",
+            "p_link": "http://mavat.moin.gov.il/MavatPS/Forms/Attachment.aspx?edid=77000152680651&edn=C989465655D7B2DD7986BF46D64F9419B37B689FC7D782E61018C36AA9B746AA"
+          }
         ],
+        "takanon_link": [
+          "/IturTabotData/takanonim/jerus/1014826.pdf"
+        ],
+        "status": "פרסום תוקף ברשומות",
         "nispahim_link": [
-            "http://mmi.gov.il//IturTabotData/nispachim/jerus/1011879/100/תשריט עצים.pdf",
-            "http://mmi.gov.il//IturTabotData/nispachim/jerus/1011879/38.pdf",
-            "http://mmi.gov.il//IturTabotData/nispachim/jerus/1011879/4_1.pdf",
-            "http://mmi.gov.il//IturTabotData/nispachim/jerus/1011879/4_2.pdf"
+          "/IturTabotData/nispachim/jerus/1014826/46_1.pdf"
         ],
-        "number": "מק/14177",
-        "month": 8,
-        "takanon_link": [
-            "http://mmi.gov.il//IturTabotData/takanonim/jerus/1011879.pdf"
+        "mavat_files": [
+          {
+            "type": "pdf",
+            "link": "http://mavat.moin.gov.il/MavatPS/Forms/Attachment.aspx?edid=6000193188187&edn=D4572918B4DDD1DE100ED008AA05E6DE7A9E2385FFE1F11D1D44E86DFDA71FF8",
+            "name": "תשריט מצב מוצע - תשריט מצב מוצע"
+          }
         ],
+        "plan_type": "מתאר מקומי",
         "govmap_link": [],
-        "year": 2012,
-        "details_link": "taba4.asp?num=4&rec=4&gis=false",
-        "_id": {
-            "$oid": "50ec4420e16ddfd5a2fe7c0c"
-        },
-        "day": 2
-    },
-    {
-        "status": "פרסום תוקף ברשומות ",
+        "location_string": "הקו הירוק של הרכבת הקלה",
+        "committee_type": "מחוזית",
+        "day": 12,
+        "mavat_code": "TOpflW7W09+sG7MxZz/tpkvl/K87CznXS0dQr1i1Q6kI3Jir4Lz+4ve6CeT8bKvXbvvKv8UiXvvF/MX49+VxhDxxRgEiRIniz/t8dLm8RY0=",
         "tasrit_link": [
-            "http://mmi.gov.il//IturTabotData/tabot/jerus/1011319_K.pdf",
-            "http://mmi.gov.il//IturTabotData/tabot/jerus/1011319_M.pdf",
-            "http://mmi.gov.il//IturTabotData/tabot/jerus/1011319_T.pdf"
+          "/IturTabotData/tabot/jerus/1014826/מצב מאושר-גיליון 1.pdf"
         ],
-        "gush_id": "30540",
-        "area": "ירושלים",
-        "essence": "הוספת נתיב הסעה שלישי לשדרות מנחם בגין מרכז",
-        "files_link": [
-            "/IturTabotData/download/jerus/1011319.zip"
-        ],
-        "nispahim_link": [],
-        "number": "2855/ב",
-        "month": 8,
-        "takanon_link": [
-            "http://mmi.gov.il//IturTabotData/takanonim/jerus/1011319.pdf"
-        ],
-        "govmap_link": [],
-        "year": 2011,
-        "details_link": "taba4.asp?num=4&rec=2&gis=false",
+        "files_link": [],
+        "details_link": "http://apps.land.gov.il/iturTabot2/taba2.aspx?tbMerchav=102&tUniqueID=1&sSug=~&tblView=tblView_567f30260005&tbMsTochnit=101-0209593",
         "_id": {
-            "$oid": "50ec4420e16ddfd5a2fe7c0a"
+          "$oid": "59c00e7ad02e544af9fe18ad"
         },
-        "day": 31
-    },
-    ....
+        "region": "ירושלים"
+      },
+      ....
     ]
 
-Get all blocks info (current just gush_id)
+Get all blocks info:
 
     GET /gushim.json
 
-    [{"gush_id": "30019S"}, {"gush_id": "30000"}, {"gush_id": "30001"}, {"gush_id": "30002"}, {"gush_id": "30003"}, {"gush_id": "30004"}, {"gush_id": "30005"}, {"gush_id": "30006"}, {"gush_id": "30007"}, {"gush_id": "30008"}, {"gush_id": "30009"}, {"gush_id": "30010"}, {"gush_id": "30011"}, {"gush_id": "30012"}, {"gush_id": "30013"}, {"gush_id": "30014"}, {"gush_id": "30015"}, {"gush_id": "30016"}, {"gush_id": "30017"}, {"gush_id": "30018"}, {"gush_id": "30019"}, {"gush_id": "30020"}, {"gush_id": "30021"}, {"gush_id": "30022"}, {"gush_id": "30023"}, {"gush_id": "30024"}, {"gush_id": "30025"}, {"gush_id": "30026"}, {"gush_id": "30027"}, {"gush_id": "30028"}, {"gush_id": "30029"}, {"gush_id": "30030"}, {"gush_id": "30031"}, {"gush_id": "30032"}, {"gush_id": "30033"}, {"gush_id": "30034"}, {"gush_id": "30035"}, {"gush_id": "30036"}, {"gush_id": "30037"}, {"gush_id": "30038"}, {"gush_id": "30039"}, {"gush_id": "30040"}, {"gush_id": "30041"}, {"gush_id": "30042"}, {"gush_id": "30043"}, {"gush_id": "30044"}, {"gush_id": "30045"}, {"gush_id": "30046"}, {"gush_id": "30047"}, {"gush_id": "30048"}, {"gush_id": "30049"}, {"gush_id": "30050"}, {"gush_id": "30051"}, {"gush_id": "30052"}, {"gush_id": "30053"}, {"gush_id": "30054"}, {"gush_id": "30055"}, {"gush_id": "30056"}, {"gush_id": "30057"}, {"gush_id": "30058"}, {"gush_id": "30059"}, {"gush_id": "30060"}, {"gush_id": "30061"},
-    ....
+    [
+      {
+        "json_hash": "76c22121018934b5753c5f88a8e598ae",
+        "_id": {
+          "$oid": "59bd8ac6d02e5431278b4812"
+        },
+        "gush_id": "30540",
+        "last_checked_at": {
+          "$date": 1505769642818
+        }
+      },
+      {
+        "json_hash": "76c22121018934b5753c5f88a8e598ae",
+        "_id": {
+          "$oid": "59bd8ac6d02e5431278b4813"
+        },
+        "gush_id": "30541",
+        "last_checked_at": {
+          "$date": 1505769663818
+        }
+      },
+      {
+        "json_hash": "76c22121018934b5753c5f88a8e598ae",
+        "_id": {
+          "$oid": "59bd8ac6d02e5431278b4814"
+        },
+        "gush_id": "30542",
+        "last_checked_at": {
+          "$date": 1505769698818
+        }
+      }
+      ....
     ]
 
 
@@ -199,25 +228,27 @@ Get an ATOM feed of recent plans (across all gushim):
       <link href="http://opentaba-server.herokuapp.com/" />
       <link href="http://opentaba-server.herokuapp.com/feed.atom" rel="self" />
       <generator>Werkzeug</generator>
-      <entry xml:base="http://opentaba-server.herokuapp.com/feed.atom">
-        <title type="text">פארק עמק רפאים</title>
-        <id>http://mmi.gov.il/IturTabot/taba4.asp?kod=3000&amp;MsTochnit=12222&amp;status=פרסום תוקף ברשומות </id>
-        <updated>2013-11-28T00:00:00Z</updated>
-        <link href="http://mmi.gov.il/IturTabot/taba4.asp?kod=3000&amp;MsTochnit=12222" />
+      <entry xml:base="http://opentaba-server-jerusalem.herokuapp.com/plans.atom">
+        <title type="text">רח' ניימן שמואל 20,18,16,14 שכ' נווה יעקב</title>
+        <id>רח' ניימן שמואל 20,18,16,14 שכ' נווה יעקב-פרסום תוקף ברשומות</id>
+        <updated>2017-06-27T00:00:00Z</updated>
+        <link href="http://apps.land.gov.il/iturTabot2/taba2.aspx?tbMerchav=102&amp;tUniqueID=3&amp;sSug=~&amp;tblView=tblView_5b012681d09e&amp;tbMsTochnit=101-0087650" />
         <author>
           <name>OpenTABA.info</name>
         </author>
-        <content type="html">פרסום תוקף ברשומות 12222</content>
+        <link href="http://opentaba-server-jerusalem.herokuapp.com/plan/1015210/mavat" rel="related" title="מבא&quot;ת" />
+        <content type="html">הרחבת יח"ד [פרסום תוקף ברשומות, 27/06/2017, 101-0087650]</content>
       </entry>
-      <entry xml:base="http://opentaba-server.herokuapp.com/feed.atom">
-        <title type="text">פארק עמק רפאים</title>
-        <id>http://mmi.gov.il/IturTabot/taba4.asp?kod=3000&amp;MsTochnit=12222&amp;status=פרסום תוקף ברשומות </id>
-        <updated>2013-11-28T00:00:00Z</updated>
-        <link href="http://mmi.gov.il/IturTabot/taba4.asp?kod=3000&amp;MsTochnit=12222" />
+      <entry xml:base="http://opentaba-server-jerusalem.herokuapp.com/plans.atom">
+        <title type="text">רח' זווין 28,30,32 שכ' נווה יעקב</title>
+        <id>רח' זווין 28,30,32 שכ' נווה יעקב-פרסום בעיתונות להפקדה</id>
+        <updated>2017-06-08T00:00:00Z</updated>
+        <link href="http://apps.land.gov.il/iturTabot2/taba2.aspx?tbMerchav=102&amp;tUniqueID=8&amp;sSug=~&amp;tblView=tblView_5b012681d09e&amp;tbMsTochnit=101-0377861" />
         <author>
           <name>OpenTABA.info</name>
         </author>
-        <content type="html">פרסום תוקף ברשומות 12222</content>
+        <link href="http://opentaba-server-jerusalem.herokuapp.com/plan/1015486/mavat" rel="related" title="מבא&quot;ת" />
+        <content type="html">הרחבת יח"ד [»»פרסום בעיתונות להפקדה««, 08/06/2017, 101-0377861]</content>
       </entry>
       ....
     </feed>

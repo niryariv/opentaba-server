@@ -96,7 +96,7 @@ def extract_data(gush_json):
         rec['area'] = plan['mtysvShemYishuv'].strip()
         
         bs = BeautifulSoup(plan['Link'], 'lxml')
-        rec['details_link'] = bs('a')[0].get('href').replace("javascript:openDetailesPage('", 'http://mmi.gov.il/IturTabot2/').replace("','", '', 1).replace("','", '&tbMsTochnit=').replace("')", '')
+        rec['details_link'] = bs('a')[0].get('href').replace("javascript:openDetailesPage('", 'http://apps.land.gov.il/iturTabot2/').replace("','", '', 1).replace("','", '&tbMsTochnit=').replace("')", '')
         rec['number'] = bs('a')[0].contents[0]
 
         rec['status'] = plan['Status'].strip()
