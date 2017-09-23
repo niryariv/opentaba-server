@@ -10,7 +10,7 @@ from helpers import parse_challenge
 
 
 SITE_ENCODING = 'windows-1255'
-BASE_URL = 'http://apps.land.gov.il/iturTabot2/taba1.aspx'
+BASE_URL = 'http://apps.land.gov.il'
 
 
 def get_mmi_gush_json(gush_id):
@@ -20,12 +20,12 @@ def get_mmi_gush_json(gush_id):
     ses = requests.Session()
 
     # Get the base search page and save the aspx session cookie, data source and view state
-    r = ses.get(BASE_URL)
+    r = ses.get('%s/iturTabot2/taba1.aspx' % BASE_URL)
     
     # Solve the challenge if needed
     if 'X-AA-Challenge' in r.text:
         challenge = parse_challenge(r.text)
-        r = ses.get(BASE_URL, headers={
+        r = ses.get('%s/iturTabot2/taba1.aspx' % BASE_URL, headers={
             'X-AA-Challenge': challenge['challenge'],
             'X-AA-Challenge-ID': challenge['challenge_id'],
             'X-AA-Challenge-Result': challenge['challenge_result']
@@ -33,7 +33,7 @@ def get_mmi_gush_json(gush_id):
         
         # Yet another request, this time with the BotMitigationCookie cookie
         yum = r.cookies
-        r = ses.get(BASE_URL, cookies=yum)
+        r = ses.get('%s/iturTabot2/taba1.aspx' % BASE_URL, cookies=yum)
     
     yum = r.cookies
 
@@ -43,7 +43,7 @@ def get_mmi_gush_json(gush_id):
     view_state = html('input', id='__VIEWSTATE')[0]['value']
 
     # Tell the server which fields we are displaying
-    r = ses.post(BASE_URL, cookies=yum, data={
+    r = ses.post('%s/iturTabot2/taba1.aspx' % BASE_URL, cookies=yum, data={
         'scriptManagerId_HiddenField':None,
         '__EVENTTARGET':None,
         '__EVENTARGUMENT':None,
@@ -81,7 +81,7 @@ def get_mmi_gush_json(gush_id):
 
     # Send a parameterized request to the server (just search for the gush)
     r = ses.post(
-        '%s/getNetuneiTochniotByAllParames' % BASE_URL, 
+        '%s/iturTabot2/taba1.aspx/getNetuneiTochniotByAllParames' % BASE_URL, 
         headers={'Content-Type':'application/json'}, 
         cookies=yum, 
         data=json.dumps({
@@ -110,7 +110,7 @@ def get_mmi_gush_json(gush_id):
 
 def get_mmi_gush_json_page(requests_session, page_num, cookie, view_state, data_source):
     r = requests_session.post(
-        BASE_URL, 
+        '%s/iturTabot2/taba1.aspx' % BASE_URL, 
         cookies=cookie, 
         data={'scriptManagerId_HiddenField':None,'__EVENTTARGET':None,'__EVENTARGUMENT':None,'__VIEWSTATE':view_state,'cpe_ClientState':None,'txtMsTochnit':None,'cmsStatusim$textBox':None,'txtGush':None,'txtwinCal1$textBox':None,'txtwinCal1$popupWin$time':None,'txtwinCal1$popupWin$mskTime_ClientState':None,'txtFromHelka':None,'txtwinCal2$textBox':None,'txtwinCal2$popupWin$time':None,'txtwinCal2$popupWin$mskTime_ClientState':None,'txtMakom':None,'cmsMerchaveiTichnun$textBox':None,'cmsYeudRashi$textBox':None,'txtMatara':None,'cmsYeshuvim$textBox':None,'cmsKodAchrai$textBox':None,'cmsTakanon$textBox':None,'txtAchrai':None,'cmsSug$textBox':None,'cmsMmg$textBox':None,'cmsKodMetachnen$textBox':None,'cmsTasrit$textBox':None,'txtMetachnen':None,'__CALLBACKID':'scriptManagerId',
             '__CALLBACKPARAM':'Mmi.Tashtiot.UI.AjaxComponent.TableView$#$~$#$GetData$#${"P0":"'+data_source+'","P1":'+str(page_num)+',"P2":-1,"P3":["mtysvShemYishuv","Link","Status","tbMahut","Takanon","Tasrit","Nispach","Mmg","tbMakom","tbYechidotDiur","mtmrthTirgumMerchav","mtstTargumSugTochnit","svtTargumSugVaadatTichnun","tbTochnitId", "tbMsTochnit"],"P4":"~","P5":"~","P6":true,"P7":true}'

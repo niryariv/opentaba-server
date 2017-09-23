@@ -12,7 +12,7 @@ from copy import deepcopy
 from multiprocessing.pool import ThreadPool
 
 from conn import db, RUNNING_LOCAL
-from mmi_scrape import get_mmi_gush_json
+from mmi_scrape import get_mmi_gush_json, BASE_URL as MMI_BASE_URL
 from mavat_scrape import get_mavat_gush_json
 import sociallib
 
@@ -96,7 +96,7 @@ def extract_data(gush_json):
         rec['area'] = plan['mtysvShemYishuv'].strip()
         
         bs = BeautifulSoup(plan['Link'], 'lxml')
-        rec['details_link'] = bs('a')[0].get('href').replace("javascript:openDetailesPage('", 'http://apps.land.gov.il/iturTabot2/').replace("','", '', 1).replace("','", '&tbMsTochnit=').replace("')", '')
+        rec['details_link'] = bs('a')[0].get('href').replace("javascript:openDetailesPage('", '%s/iturTabot2/' % MMI_BASE_URL).replace("','", '', 1).replace("','", '&tbMsTochnit=').replace("')", '')
         rec['number'] = bs('a')[0].contents[0]
 
         rec['status'] = plan['Status'].strip()
@@ -120,24 +120,27 @@ def extract_data(gush_json):
         if plan['Takanon'] is not None:
             bs = BeautifulSoup(plan['Takanon'], 'lxml')
             for i in bs('a'):
-                rec['takanon_link'].append(i.get('href').replace('\\', '/'))
+                link = i.get('href').replace('\\', '/').lstrip('/')
+                rec['takanon_link'].append('%s/%s' % (MMI_BASE_URL, link))
 
         bs = BeautifulSoup(plan['Tasrit'], 'lxml')
         for i in bs('a'):
-            rec['tasrit_link'].append(i.get('href').replace('\\', '/'))
+            link = i.get('href').replace('\\', '/').lstrip('/')
+            rec['tasrit_link'].append('%s/%s' % (MMI_BASE_URL, link))
 
         bs = BeautifulSoup(plan['Nispach'], 'lxml')
         for i in bs('a'):
-            rec['nispahim_link'].append(i.get('href').replace('\\', '/'))
+            link = i.get('href').replace('\\', '/').lstrip('/')
+            rec['nispahim_link'].append('%s/%s' % (MMI_BASE_URL, link))
 
         if plan['Mmg'] is not None:
             bs = BeautifulSoup(plan['Mmg'], 'lxml')
             for i in bs('a'):
-                url = i.get('href').replace('\\', '/')
+                url = i.get('href').replace('\\', '/').lstrip('/')
                 if url.endswith('.zip'):
-                    rec['files_link'].append(url)
+                    rec['files_link'].append('%s/%s' % (MMI_BASE_URL, url))
                 elif 'PopUpMmg' in url:
-                    rec['govmap_link'].append(url)
+                    rec['govmap_link'].append('%s/%s' % (MMI_BASE_URL, url))
 
         rec['location_string'] = plan['tbMakom'].strip()
         rec['housing_units'] = plan['tbYechidotDiur']

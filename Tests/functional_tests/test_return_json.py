@@ -86,7 +86,7 @@ def test_api_get_plan():
     eq_(sample['plan_id'], 1005158);
     msg = 'taba2.aspx'
     assert_true(msg in sample['details_link'])
-    eq_(sample['takanon_link'], [u'/IturTabotData/takanonim/jerus/1005158.pdf'])
+    eq_(sample['takanon_link'], [u'http://apps.land.gov.il/IturTabotData/takanonim/jerus/1005158.pdf'])
     # eq_(sample['essence'], u"השלמת קומה והרחבות דיור")
 
 
