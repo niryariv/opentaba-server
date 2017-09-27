@@ -1,8 +1,8 @@
-##Deploying a New Municipality
+## Deploying a New Municipality
 (The examples use Holon. You should change it to whatever municipality
 you are deploying)
 
-###Server
+### Server
 To deploy a server/database for a new municipality, follow these steps:
   1. Make sure the GeoJSON map file with the name of the municipality has 
      been added to the [map repository](http://github.com/niryariv/israel_gushim)
@@ -15,7 +15,7 @@ To deploy a server/database for a new municipality, follow these steps:
      plans Atom feed) is set in by the `fab create_server` (in the example above, "חולון". To edit it later, you'll need to set the MUNICIPALITY_NAME environment variable of the Heroku app, like so: 
      `heroku config:set MUNICIPALITY_NAME="חולון רבתי" --app opentaba-server-holon`
 
-###Client
+### Client
 Unlike the server side, the client uses the same code for all municipalities. Deploying a new municipality just means adding it's information to the `munis.js` file. 
 
 To deploy a new municipality, run: `fab create_client:holon,"חולון"` after the server was created. 
@@ -23,14 +23,14 @@ To deploy a new municipality, run: `fab create_client:holon,"חולון"` after 
 To change client configuration, you can edit `munis.js` manually later on, according to the [Municipality 
      Index File syntax](http://github.com/niryariv/opentaba-client/blob/master/DEPLOYMENT.md#municipality-index-file).
 
-##Automatic Facebook and Twitter Posting
+## Automatic Facebook and Twitter Posting
 The server is able to post a plan's content to a Facebook page and Twitter feed every time a plan is created or updated, using a running instance of [opentaba-poster](https://github.com/hasadna/opentaba-poster).
 To enable this feature, a poster must be registered with the needed tokens on the opentaba-poster instance, the opentaba-poster url and poster id must be set as 
 environment variables on the opentaba-server, and lastly it is possible to register the Facebook page and Twitter feed in the client to have the municipality's
 page link to them.
 It is possible to enable Facebook only, Twitter only or both.
 
-###Registering a New Poster
+### Registering a New Poster
 To register a new poster You must discover the page id and its access token for Facebook and the token and token secret for Twitter, and insert them in a new
 document into the opentaba-poster instance's database.
 You can do it manually, finding the necessary tokens using scripts available in the opentaba-poster repository, or use a fabric task provided in this repository:
@@ -38,7 +38,7 @@ You can do it manually, finding the necessary tokens using scripts available in 
 This task will do most of the work automatically (except authorize the Facebook and Twitter apps to use your accounts) and will output the new poster's id.
 desc is not needed but will be useful to identify different posters in the database, and you must provide at least one of the couple of fb\tw parameters.
 
-###Making an opentaba-server Post
+### Making an opentaba-server Post
 To enable social posting, we must be configured to work with an instance of opentaba-poster, and supply it with out poster id.
 This can be done using a fabric task, once we are sure we are defined as a poster on the opentaba-poster app:
 `fab set_poster:muni_name,poster_base_url,poster_id`
@@ -52,7 +52,7 @@ heroku config:set POSTER_SERVICE_URL="http://poster.service.com/" --app opentaba
 heroku config:set POSTER_ID="holon_id" --app opentaba-server-holon
 ```
 
-###Linking To The Social Pages From The Municipality's Page
+### Linking To The Social Pages From The Municipality's Page
 Finally (and optionally), it is possible to link from the municipality's [opentaba-client](http://github.com/niryariv/opentaba-client) page to the Facebook page and Twitter
 feed its plans are being published to using the top-right corner links.
 This can be done with a fabric task:
@@ -61,8 +61,8 @@ This can be done with a fabric task:
 Or it can be done manually by editing the [muni.js](http://github.com/niryariv/opentaba-client/blob/master/munis.js) file in opentaba-client and adding the links under your municipality.
 Key names are `fb_link` and `twitter_link`, as can be seen in Jerusalem's entry.
 
-##All Fabric Tasks
-###Server
+## All Fabric Tasks
+### Server
 + `fab create_server:muni_name, "display_name"`
   Create a new heroku app with all the
   needed addons. Set app's display name (MUNICIPALITY_NAME env var). Call 
@@ -110,8 +110,11 @@ Key names are `fb_link` and `twitter_link`, as can be seen in Jerusalem's entry.
 + `fab set_poster:muni_name,poster_base_url,poster_id` Set the required environment variables so
   that the opentaba-server instance can communicate with an opentaba-poster one and post its plans 
   to social media.
++ `fab fix_mmi_links:muni_name` Go over all existing plans data and fix links that used to be under 
+  the mmi.gov.il domain or used to be relative and had the domain name added in the client's  
+  template rendering to absolute urls under the new land.gov.il domain.
 
-###Client
+### Client
 + `fab create_client:muni_name,"display_name"` For client creation, all we need
   is for the municipality to exist in the [munis.js](munis.js) file. This task downloads
   the gush map for the municipality from [israel_gushim](http://github.com/niryariv/israel_gushim), parses its data and
@@ -124,7 +127,7 @@ Key names are `fb_link` and `twitter_link`, as can be seen in Jerusalem's entry.
   muni.js with links to Facebook, Twitter or both pages for the given municipality, then commit 
   and push the changes to publish them.
 
-###Poster
+### Poster
 + `fab add_new_poster:poster_app_name,poster_desc='',fb_app_id=None,fb_app_secret=None,tw_con_id=None,tw_con_secret=None`
   Create a new poster record on an opentaba-poster server. Facebook details, Twitter details or both can be given.
   This task will attempt to authorize you on the given social networks and get the necessary tokens for you, then

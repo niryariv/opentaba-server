@@ -258,3 +258,14 @@ def sync_poster(muni_name, min_date):
     _heroku_connect()
 
     local('heroku run "python scripts/sync_date.py -m %s -q" --app %s' % (min_date, _get_server_full_name(muni_name)))
+
+@task
+def fix_mmi_links(muni_name):
+    """
+    Go over all links to be absolute and with the new mmi domain in these fields:
+    tasrit_link, takanon_link, nispahim_link, files_link, details_link
+    """
+    
+    _heroku_connect()
+    
+    local('heroku run "python scripts/fix_old_mmi_links.py" --app %s' % (min_date, _get_server_full_name(muni_name)))
