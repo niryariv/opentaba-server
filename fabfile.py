@@ -10,6 +10,7 @@ from scripts.client_fabfile import create_client, update_client_social_links
 
 from scripts.server_fabfile import create_server, delete_server, update_gushim_server, deploy_server, deploy_server_all, create_db
 from scripts.server_fabfile import update_db, scrape, renew_db, renew_db_all, refresh_db, refresh_db_all, set_poster, sync_poster
+from scripts.server_fabfile import fix_mmi_links
 
 from scripts.poster_fabfile import add_new_poster
 

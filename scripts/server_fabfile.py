@@ -268,4 +268,4 @@ def fix_mmi_links(muni_name):
     
     _heroku_connect()
     
-    local('heroku run "python scripts/fix_old_mmi_links.py" --app %s' % (min_date, _get_server_full_name(muni_name)))
+    local('heroku run "python scripts/fix_old_mmi_links.py" --app %s' % _get_server_full_name(muni_name))
