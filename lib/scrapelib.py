@@ -115,7 +115,7 @@ def extract_data(gush_json):
             
             rec['status'] = rec['status'].replace(d, '').strip()
 
-        rec['essence'] = plan['tbMahut'].strip()
+        rec['essence'] = plan['tbMahut'].strip() if plan['tbMahut'] else ''
 
         if plan['Takanon'] is not None:
             bs = BeautifulSoup(plan['Takanon'], 'lxml')
