@@ -174,14 +174,14 @@ def get_mavat_plan_docs_meetings_json(session, cookie, plan_code):
     if len(tbl_docs) > 0:
         for tr in tbl_docs[0]('tbody')[0].children:
             if type(tr) == Tag:
-                if any(word in tr.contents[3].string for word in [u'תשריט', u'פרוטוקול']):
+                if any(word in tr.contents[1].string for word in [u'תשריט', u'פרוטוקול']):
                     # Get the file's permalink from the onclick javascript function call
-                    file_permalink = _get_permalink_by_opendoc(tr.contents[5].contents[1].get('onclick'))
+                    file_permalink = _get_permalink_by_opendoc(tr('img')[0].get('onclick'))
                 
                     # Get the file type from the img
-                    file_type = _get_filetype_by_img_src(tr.contents[5].contents[1].get('src'))
+                    file_type = _get_filetype_by_img_src(tr('img')[0].get('src'))
                     
-                    files.append({'name':tr.contents[3].string.strip(),'type':file_type,'link':file_permalink})
+                    files.append({'name': tr.contents[1].string.strip(), 'type': file_type, 'link': file_permalink})
     
     # If we got tblDecisionMeetings, parse its content for meetings
     tbl_protocol = plan_html('table', id='tblDecisionMeetings')
